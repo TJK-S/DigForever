@@ -7,7 +7,6 @@
 #include <cassert>
 #include <random>
 
-
 enum class Tile {
     TILE_EMPTY = 0,
     TILE_SOFT  = 1,
@@ -18,9 +17,14 @@ enum class Tile {
 
 class World {
 public:
-    static constexpr int kROWS { 11 };
     static constexpr int kCOLS { 7 };
+    static constexpr int kROWS { 11 };
     static constexpr int kTILE_SIZE { 32 };
+
+    static constexpr int kWORLD_WIDTH  { kCOLS * kTILE_SIZE };
+    static constexpr int kWORLD_HEIGHT { kROWS * kTILE_SIZE };
+
+    static constexpr int kCENTER_ROW = 6;
 
 private:
     std::array<Tile, kROWS * kCOLS> m_grid;
@@ -55,7 +59,7 @@ public:
     void generateInitialGrid() {
         for (int col = 0; col < kCOLS; ++col) {
             for (int row = 0; row < kROWS; ++row) {
-                if (row <= 6) {
+                if (row <= kCENTER_ROW) {
                     setTile(col, row, Tile::TILE_EMPTY);
                 } 
                 else {
@@ -85,6 +89,7 @@ public:
         }
     }
     const std::array<Tile, kROWS * kCOLS>& getTiles() const { return m_grid; }
+    
     World() { generateInitialGrid(); }
 };
 

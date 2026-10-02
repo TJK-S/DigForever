@@ -14,8 +14,8 @@ enum class Direction {
 
 class Player {
 public:
-    static constexpr float kX_SIZE  { 32.f };
-    static constexpr float kY_SIZE  { 32.f };
+    static constexpr float kX_SIZE  { 24.f };
+    static constexpr float kY_SIZE  { 24.f };
 
     static constexpr float kX_SPEED  { 200.f };
     static constexpr float kY_SPEED  { 530.f };
@@ -75,7 +75,9 @@ private:
         const int sign = (move > 0) ? 1 : -1;
 
         while (move != 0) {
-            if (collidesAt(m_xPos + sign, m_yPos, tiles)) {
+            if (collidesAt(m_xPos + sign, m_yPos, tiles) || m_xPos + sign < 0.f || 
+                m_xPos + sign + kX_SIZE > World::kWORLD_WIDTH) {
+
                 m_xVelocity = 0.f;
                 m_xRemainder = 0.f;
                 break;
@@ -95,7 +97,8 @@ private:
         m_onGround = false;
         
         while (move != 0) {
-            if (collidesAt(m_xPos, m_yPos + sign, tiles)) {
+            if (collidesAt(m_xPos, m_yPos + sign, tiles) ||
+                m_yPos + sign + kY_SIZE > World::kWORLD_HEIGHT) {
                 m_yVelocity = 0.f; 
                 m_yRemainder = 0.f;
                 m_onGround = (sign > 0);
@@ -104,8 +107,8 @@ private:
             m_yPos += sign;
             move -= sign;
         }
-        
     }
+    
 public:
     Player() 
     :   m_xPos{static_cast<float>(World::kCOLS * World::kTILE_SIZE) * 0.5f},
