@@ -34,6 +34,14 @@ public:
         return static_cast<float>(y * kTILE_SIZE);
     }
 
+    static int worldToGridPosX(float x) {
+        return static_cast<int>(x / kTILE_SIZE);
+    }
+
+    static int worldToGridPosY(float y) {
+        return static_cast<int>(y / kTILE_SIZE);
+    }
+
     void setTile(int x, int y, Tile type) {
         assert(x <= kCOLS && y <= kROWS);
         m_grid[x + kCOLS * y] = type;

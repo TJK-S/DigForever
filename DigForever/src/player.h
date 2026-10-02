@@ -8,30 +8,36 @@
 #include <array> 
 #include <cmath>
 
+enum class Direction {
+    Up, Down, Left, Right
+};
+
 class Player {
 public:
-    static constexpr float kX_SIZE { 32.f };
-    static constexpr float kY_SIZE { 32.f };
+    static constexpr float kX_SIZE  { 32.f };
+    static constexpr float kY_SIZE  { 32.f };
 
-    static constexpr float kX_SPEED { 300.f };
-    static constexpr float kY_SPEED { 1700.f };
+    static constexpr float kX_SPEED  { 200.f };
+    static constexpr float kY_SPEED  { 530.f };
+    static constexpr float k_GRAVITY { 1700.f };
 
 private:
     float m_xPos;
     float m_yPos;
-    
 
-    float m_xVelocity  { 0.f };
-    float m_xRemainder { 0.f };
+    float m_xVelocity     { 0.f };
+    float m_xRemainder    { 0.f };
 
-    float m_yVelocity  { 0.f };
-    float m_yRemainder { 0.f };
+    float m_yVelocity     { 0.f };
+    float m_yRemainder    { 0.f };
 
-    bool m_onGround { false };
+    bool m_onGround       { false };
+    Direction m_direction { Direction::Down };
+    bool m_digging        { false };
 
 private:
     void applyGravity(float dt) {
-        m_yVelocity += kY_SPEED * dt;
+        m_yVelocity += k_GRAVITY * dt;
     }   
     bool hasIntersection(
         float x1, float y1, float w1, float h1,
@@ -113,12 +119,17 @@ public:
         moveY(m_yVelocity * dt, tiles);
     }
 
-    void setVelocityX(float vel) { m_xVelocity = vel; }
-    void setVelocityY(float vel) { m_yVelocity = vel; }
+    void  setVelocityX(float vel)  { m_xVelocity = vel; }
+    void  setVelocityY(float vel)  { m_yVelocity = vel; }
+    void  setFacing(Direction dir) { m_direction = dir; }
+    void  startDig()               { m_digging = true; }
+    void  stopDig()                { m_digging = false; }
 
-    float getPosX() const { return m_xPos; }
-    float getPosY() const { return m_yPos; }
-    bool isOnGround() const { return m_onGround; }
+    float getPosX()          const { return m_xPos; }
+    float getPosY()          const { return m_yPos; }
+    bool isOnGround()        const { return m_onGround; }
+    Direction getDirection() const { return m_direction; }
+    bool isDigging()         const { return m_digging; }
 };
 
 #endif
