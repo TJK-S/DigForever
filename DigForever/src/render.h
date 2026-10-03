@@ -7,6 +7,21 @@
 #ifndef RENDER_H
 #define RENDER_H
 
+namespace {
+    Color getTileColor(Tile tile) {
+        switch (tile) {
+            case Tile::TILE_EMPTY: return ::WHITE;
+            case Tile::TILE_RED:   return ::RED;
+            case Tile::TILE_GREEN: return ::GREEN;
+            case Tile::TILE_BLUE:  return ::BLUE;
+            case Tile::TILE_TOUGH: return ::BLACK;
+            default:               return ::WHITE;
+        }
+        // in case the compiler complains
+        return ::WHITE;
+    }
+} // namespace
+
 class Renderer {
 public:
     static constexpr int SCREEN_WIDTH  { 640 };
@@ -30,16 +45,10 @@ public:
                 const int xPos = col * World::kTILE_SIZE;
                 const int yPos = row * World::kTILE_SIZE;
 
-                const Color color = [&](){
-                    switch (world.getTile(col, row)) {
-                        case Tile::TILE_SOFT: return ::GREEN;
-                        case Tile::TILE_HARD: return ::RED;
-                        default:              return ::WHITE;
-                    }
-                }();
+                const Color color = getTileColor(world.getTile(col, row));
 
                 ::DrawRectangle(
-                    kX_OFFSET + xPos, kY_OFFSET + world.getOffsetY()+ yPos,
+                    kX_OFFSET + xPos, kY_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
                     World::kTILE_SIZE, World::kTILE_SIZE, color);
             }
         }  
@@ -49,8 +58,12 @@ public:
         const Player& player = m_game.getPlayer();
 
         ::DrawRectangle(
-            kX_OFFSET + player.getPosX(), kY_OFFSET + player.getPosY(),
-            Player::kX_SIZE, Player::kY_SIZE, ::BLUE );
+            kX_OFFSET + static_cast<int>(player.getPosX()),
+            kY_OFFSET + static_cast<int>(player.getPosY()),
+            static_cast<int>(Player::kX_SIZE), 
+            static_cast<int>(Player::kY_SIZE),
+            ::MAGENTA
+        );
     }
 };
 

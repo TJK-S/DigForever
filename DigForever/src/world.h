@@ -10,10 +10,12 @@
 
 enum class Tile {
     TILE_EMPTY = 0,
-    TILE_SOFT  = 1,
-    TILE_HARD  = 2,
+    TILE_RED   = 1,
+    TILE_GREEN = 2,
+    TILE_BLUE  = 3,
+    TILE_TOUGH = 4,
 
-    NUM_TILES  = 3
+    NUM_TILES  = 5
 };
 
 class World {
@@ -41,11 +43,11 @@ private:
         1, static_cast<int>(Tile::NUM_TILES) - 1};
 
 public:
-    static float gridToWorldPosX(float x) {
+    static float gridToWorldPosX(int x) {
         return static_cast<float>(x * kTILE_SIZE);
     }
 
-    static float gridToWorldPosY(float y) {
+    static float gridToWorldPosY(int y) {
         return static_cast<float>(y * kTILE_SIZE) + World::s_yOffset;
     }
 
@@ -90,7 +92,8 @@ public:
                     setTile(col, row, Tile::TILE_EMPTY);
                 } 
                 else {
-                    setTile(col, row, Tile::TILE_SOFT);
+                    const Tile tile = static_cast<Tile>(m_tileDistr(m_rd));
+                    setTile(col, row, tile);
                 }
             }
         }
