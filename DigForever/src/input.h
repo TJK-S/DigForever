@@ -10,7 +10,7 @@
 class Input {
 private:
     Player& m_player;
-    bool prevDig { false };
+    bool m_prevDig { false };
 
 public:
     Input(Player & player) : m_player(player) {}
@@ -50,11 +50,11 @@ public:
 
         m_player.setFacing(facing);
         m_player.stopDig();
-        if (dig && !prevDig && m_player.isOnGround()) {
+        if (dig && !m_prevDig && m_player.isOnGround()) {
             m_player.startDig();
         }
 
-        prevDig = dig;
+        m_prevDig = dig;
     }
 };
 

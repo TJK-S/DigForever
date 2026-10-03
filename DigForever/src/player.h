@@ -19,7 +19,7 @@ public:
 
     static constexpr float kX_SPEED  { 200.f };
     static constexpr float kY_SPEED  { 530.f };
-    static constexpr float k_GRAVITY { 1700.f };
+    static constexpr float kGRAVITY { 1700.f };
 
 private:
     float m_xPos;
@@ -37,7 +37,7 @@ private:
 
 private:
     void applyGravity(float dt) {
-        m_yVelocity += k_GRAVITY * dt;
+        m_yVelocity += kGRAVITY * dt;
     }   
     bool hasIntersection(
         float x1, float y1, float w1, float h1,

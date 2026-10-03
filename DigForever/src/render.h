@@ -13,10 +13,10 @@ public:
     static constexpr int SCREEN_HEIGHT { 360 };
 
 private:
-    static constexpr int X_OFFSET { 
+    static constexpr int kX_OFFSET { 
         SCREEN_WIDTH / 2 - (World::kCOLS * World::kTILE_SIZE) /2 };
 
-    static constexpr int Y_OFFSET {
+    static constexpr int kY_OFFSET {
         -World::kTILE_SIZE};
 
     const Game& m_game;
@@ -39,7 +39,7 @@ public:
                 }();
 
                 ::DrawRectangle(
-                    X_OFFSET + xPos, Y_OFFSET + world.getOffsetY()+ yPos,
+                    kX_OFFSET + xPos, kY_OFFSET + world.getOffsetY()+ yPos,
                     World::kTILE_SIZE, World::kTILE_SIZE, color);
             }
         }  
@@ -49,7 +49,7 @@ public:
         const Player& player = m_game.getPlayer();
 
         ::DrawRectangle(
-            X_OFFSET + player.getPosX(), Y_OFFSET + player.getPosY(),
+            kX_OFFSET + player.getPosX(), kY_OFFSET + player.getPosY(),
             Player::kX_SIZE, Player::kY_SIZE, ::BLUE );
     }
 };
