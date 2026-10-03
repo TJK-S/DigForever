@@ -6,6 +6,7 @@
 #include <array>
 #include <cassert>
 #include <random>
+#include <memory>
 
 enum class Tile {
     TILE_EMPTY = 0,
@@ -31,8 +32,13 @@ private:
     // could optimize this to be array of arrays
     // this way the build one row function isnt changing
     // litterally all kCOLS * kROWS
-    std::array<Tile, kROWS * kCOLS> m_grid;
+    // std::array<Tile, kROWS * kCOLS> m_grid;
+    std::array<std::array<Tile, kCOLS>, kROWS> m_grid;
     inline static float s_yOffset { 0.f };
+
+    std::random_device m_rd {};
+    std::uniform_int_distribution<int> m_tileDistr { 
+        1, static_cast<int>(Tile::NUM_TILES) - 1};
 
 public:
     static float gridToWorldPosX(float x) {
@@ -48,11 +54,11 @@ public:
     }
 
     static int worldToGridPosY(float y) {
-        return static_cast<int>(y / kTILE_SIZE);
+        return static_cast<int>( (y - s_yOffset) / kTILE_SIZE);
     }
 
     static bool inGridBounds(int x, int y) {
-        return x <= kCOLS && y <= kROWS;
+        return x >= 0 && x < kCOLS && y >= 0 && y < kROWS;
     }
 
     static void shiftOffsetY(float dy) {
@@ -69,12 +75,12 @@ public:
 
     void setTile(int x, int y, Tile type) {
         assert(inGridBounds(x, y));
-        m_grid[x + kCOLS * y] = type;
+        m_grid[y][x] = type;
     }
 
     Tile getTile(int x, int y) const {
         assert(inGridBounds(x, y));
-        return m_grid[x + kCOLS * y];
+        return m_grid[y][x];
     }
 
     void generateInitialGrid() {
@@ -91,25 +97,18 @@ public:
     }
 
     void buildOneRow() {
-        std::random_device rd;
-        std::mt19937 gen(rd());
- 
-        // replace every row with row beneath it. skipping the last row
-        for (int col = 0; col < kCOLS; ++col) {
-            for (int row = 0; row < kROWS - 1; ++row) {
-                setTile(col, row, getTile(col, row + 1));
-            }
+        // replace every row with the row beneath it. skipping the last row
+        for (int row = 0; row < kROWS - 1; ++row) {
+            m_grid[row] = m_grid[row + 1];
         }
 
-        // randomize the last row
         for (int col = 0; col < kCOLS; ++col) {
             // Not including 0 which is Empty
             // options are soft and hard
-            std::uniform_int_distribution<int> distr(1, static_cast<int>(Tile::NUM_TILES) - 1);
-            setTile(col, kROWS - 1, static_cast<Tile>(distr(gen)));
+            setTile(col, kROWS - 1, static_cast<Tile>(m_tileDistr(m_rd)));
         }
     }
-    const std::array<Tile, kROWS * kCOLS>& getTiles() const { return m_grid; }
+    const std::array<std::array<Tile, kCOLS>, kROWS>& getTiles() const { return m_grid; }
     
     World() {
         generateInitialGrid();

@@ -47,10 +47,10 @@ private:
                y1 < y2 + h2 && y1 + h1 > y2;
     }
 
-    bool collidesAt(float x, float y, const std::array<Tile, World::kCOLS * World::kROWS> tiles) const {
+    bool collidesAt(float x, float y, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) const {
         for (int col = 0; col < World::kCOLS; ++col) {
             for (int row = 0; row < World::kROWS; ++row) {
-                const Tile& tile = tiles[col + World::kCOLS * row];
+                const Tile& tile = tiles[row][col];
 
                 if (tile == Tile::TILE_EMPTY) { continue; }
             
@@ -66,7 +66,7 @@ private:
         return false;
     }
 
-    void moveX(float amount, const std::array<Tile, World::kCOLS * World::kROWS> tiles) {
+    void moveX(float amount, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) {
         m_xRemainder += amount;
         int move = static_cast<int>(std::round(m_xRemainder));
         if (move == 0) { return; }
@@ -87,7 +87,7 @@ private:
         }
     }
 
-    void moveY(float amount, const std::array<Tile, World::kCOLS * World::kROWS> tiles) {
+    void moveY(float amount, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) {
         m_yRemainder += amount;
         int move = static_cast<int>(std::round(m_yRemainder));
         if (move == 0) return;
@@ -115,7 +115,7 @@ public:
         m_yPos{World::kSCROLL_LINE - World::kTILE_SIZE}
     {}
 
-    void update(float dt, const std::array<Tile, World::kCOLS * World::kROWS>& tiles) {        
+    void update(float dt, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) {        
         applyGravity(dt);
 
         moveX(m_xVelocity * dt, tiles);
