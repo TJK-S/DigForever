@@ -8,14 +8,19 @@
 #include <random>
 #include <memory>
 
-enum class Tile {
+enum class TileType {
     TILE_EMPTY = 0,
     TILE_RED   = 1,
     TILE_GREEN = 2,
     TILE_BLUE  = 3,
-    TILE_TOUGH = 4,
 
+    TILE_TOUGH = 4, // must always be the tile before the NUM_TILES for underlying type comparisons
     NUM_TILES  = 5
+};
+
+struct Tile {
+    TileType type { TileType::TILE_EMPTY};
+    int numHits   { 0 };
 };
 
 class World {
@@ -31,16 +36,12 @@ public:
     static constexpr float kSCROLL_LINE  { kCENTER_ROW * kTILE_SIZE };
 
 private:
-    // could optimize this to be array of arrays
-    // this way the build one row function isnt changing
-    // litterally all kCOLS * kROWS
-    // std::array<Tile, kROWS * kCOLS> m_grid;
     std::array<std::array<Tile, kCOLS>, kROWS> m_grid;
     inline static float s_yOffset { 0.f };
 
-    std::random_device m_rd {};
+    std::mt19937 m_rng { std::random_device{}() };
     std::uniform_int_distribution<int> m_tileDistr { 
-        1, static_cast<int>(Tile::NUM_TILES) - 1};
+        1, static_cast<int>(TileType::NUM_TILES) - 1}; // not including 0 which is the empty tile
 
 public:
     static float gridToWorldPosX(int x) {
@@ -52,7 +53,7 @@ public:
     }
 
     static int worldToGridPosX(float x) {
-        return static_cast<int>(x / kTILE_SIZE);
+        return static_cast<int>(x / kTILE_SIZE);    
     }
 
     static int worldToGridPosY(float y) {
@@ -76,32 +77,57 @@ public:
         m_grid[y][x] = type;
     }
 
-    Tile getTile(int x, int y) const {
+    const Tile& getTile(int x, int y) const {
         assert(inGridBounds(x, y));
         return m_grid[y][x];
     }
 
-    void destroyMatchingTiles(int x, int y, Tile type) {
-        if (!inGridBounds(x, y) || getTile(x, y) != type) {
+    bool hitTile(int x, int y) {
+        assert(inGridBounds(x, y));
+        Tile& tile = m_grid[y][x];
+        if (tile.type == TileType::TILE_EMPTY || --tile.numHits > 0) {
+            return false;
+        }
+
+        destroyMatchingTiles(x, y, tile);
+        return true;
+    }
+
+    void destroyMatchingTiles(int x, int y, Tile tile) {
+        if (!inGridBounds(x, y) || getTile(x, y).type != tile.type) {
             return;
         }
 
-        setTile(x, y, Tile::TILE_EMPTY);
+        setTile(x, y, Tile{});
 
-        destroyMatchingTiles(x + 1, y,     type);
-        destroyMatchingTiles(x - 1, y,     type);
-        destroyMatchingTiles(x,     y + 1, type);
-        destroyMatchingTiles(x,     y - 1, type);
+        if (tile.type == TileType::TILE_TOUGH) {
+            return; 
+        }
+
+        destroyMatchingTiles(x + 1, y,     tile);
+        destroyMatchingTiles(x - 1, y,     tile);
+        destroyMatchingTiles(x,     y + 1, tile);
+        destroyMatchingTiles(x,     y - 1, tile);
+    }
+
+    Tile makeRandomTile() {
+        const int randDistrNum = m_tileDistr(m_rng);
+        const TileType type = static_cast<TileType>(randDistrNum);
+        const int numHits = 
+            (randDistrNum < static_cast<int>(TileType::TILE_TOUGH)) 
+            ? 1 : 5;
+            
+        return Tile{ type, numHits };
     }
 
     void generateInitialGrid() {
         for (int col = 0; col < kCOLS; ++col) {
             for (int row = 0; row < kROWS; ++row) {
                 if (row <= kCENTER_ROW) {
-                    setTile(col, row, Tile::TILE_EMPTY);
+                    setTile(col, row, Tile{}); // default empty tile
                 } 
                 else {
-                    const Tile tile = static_cast<Tile>(m_tileDistr(m_rd));
+                    const Tile tile = makeRandomTile();
                     setTile(col, row, tile);
                 }
             }
@@ -114,12 +140,13 @@ public:
             m_grid[row] = m_grid[row + 1];
         }
 
+        // randomize the last row
         for (int col = 0; col < kCOLS; ++col) {
-            // Not including 0 which is Empty
-            // options are soft and hard
-            setTile(col, kROWS - 1, static_cast<Tile>(m_tileDistr(m_rd)));
+            const Tile tile = makeRandomTile();
+            setTile(col, kROWS - 1, tile);
         }
     }
+    
     const std::array<std::array<Tile, kCOLS>, kROWS>& getTiles() const { return m_grid; }
     
     World() {

@@ -8,13 +8,13 @@
 #define RENDER_H
 
 namespace {
-    Color getTileColor(Tile tile) {
+    Color getTileColor(TileType tile) {
         switch (tile) {
-            case Tile::TILE_EMPTY: return ::WHITE;
-            case Tile::TILE_RED:   return ::RED;
-            case Tile::TILE_GREEN: return ::GREEN;
-            case Tile::TILE_BLUE:  return ::BLUE;
-            case Tile::TILE_TOUGH: return ::BLACK;
+            case TileType::TILE_EMPTY: return ::WHITE;
+            case TileType::TILE_RED:   return ::RED;
+            case TileType::TILE_GREEN: return ::GREEN;
+            case TileType::TILE_BLUE:  return ::BLUE;
+            case TileType::TILE_TOUGH: return ::BLACK;
             default:               return ::WHITE;
         }
         // in case the compiler complains
@@ -46,7 +46,7 @@ public:
                 const int xPos = col * World::kTILE_SIZE;
                 const int yPos = row * World::kTILE_SIZE;
 
-                const Color color = getTileColor(world.getTile(col, row));
+                const Color color = getTileColor(world.getTile(col, row).type);
 
                 ::DrawRectangle(
                     kX_OFFSET + xPos, kY_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,

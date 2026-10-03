@@ -52,7 +52,7 @@ private:
             for (int row = 0; row < World::kROWS; ++row) {
                 const Tile& tile = tiles[row][col];
 
-                if (tile == Tile::TILE_EMPTY) { continue; }
+                if (tile.type == TileType::TILE_EMPTY) { continue; }
             
                 if (hasIntersection(
                     x, y, kX_SIZE, kX_SIZE,

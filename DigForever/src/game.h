@@ -47,10 +47,7 @@ public:
             return;
         }
 
-        const Tile target = m_world.getTile(toRemoveX, toRemoveY);
-        if (target != Tile::TILE_EMPTY) {
-            m_world.destroyMatchingTiles(toRemoveX, toRemoveY, target);
-        }
+        m_world.hitTile(toRemoveX, toRemoveY);
     }
 
     const Player& getPlayer() const { return m_player; }

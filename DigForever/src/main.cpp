@@ -29,7 +29,6 @@ int main() {
         ::EndDrawing();
     }
 
-    CloseWindow();
-
+    ::CloseWindow();
     return 0;
 }
