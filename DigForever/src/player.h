@@ -112,7 +112,7 @@ private:
 public:
     Player() 
     :   m_xPos{static_cast<float>(World::kCOLS * World::kTILE_SIZE) * 0.5f},
-        m_yPos{World::kSCROLL_LINE - World::kTILE_SIZE}
+        m_yPos{World::kSCROLL_LINE + (World::kTILE_SIZE - Player::kY_SIZE)}
     {}
 
     void update(float dt, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) {        

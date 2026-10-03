@@ -19,17 +19,15 @@ public:
         m_input.handleInput();
         m_player.update(dt, m_world.getTiles());
 
-        const float playerY = m_player.getPosY();
-        while (playerY + Player::kY_SIZE > World::kSCROLL_LINE) {
-            const float offset = World::kSCROLL_LINE - playerY;
-            m_world.shiftOffsetY(offset);
-            m_player.shiftY(offset);
+        const float overshoot = m_player.getPosY() + Player::kY_SIZE - World::kSCROLL_LINE;
+        if (overshoot > 0.f) {
+            m_world.shiftOffsetY(-overshoot);
+            m_player.shiftY(-overshoot);
 
-            if (m_world.getOffsetY() >= -World::kTILE_SIZE) {
-                break;
+            while (m_world.getOffsetY() <= -World::kTILE_SIZE) {
+                m_world.shiftOffsetY(static_cast<float>(World::kTILE_SIZE));
+                m_world.buildOneRow();
             }
-            m_world.resetOffsetY();
-            m_world.buildOneRow();
         }
 
         if (!m_player.isDigging()) { return; }
@@ -49,7 +47,10 @@ public:
             return;
         }
 
-        m_world.setTile(toRemoveX, toRemoveY, Tile::TILE_EMPTY);
+        const Tile target = m_world.getTile(toRemoveX, toRemoveY);
+        if (target != Tile::TILE_EMPTY) {
+            m_world.destroyMatchingTiles(toRemoveX, toRemoveY, target);
+        }
     }
 
     const Player& getPlayer() const { return m_player; }

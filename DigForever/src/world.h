@@ -21,13 +21,13 @@ enum class Tile {
 class World {
 public:
     static constexpr int   kCOLS         { 7 };
-    static constexpr int   kROWS         { 14 };
+    static constexpr int   kROWS         { 15 };
     static constexpr int   kTILE_SIZE    { 32 };
 
     static constexpr int   kWORLD_WIDTH  { kCOLS * kTILE_SIZE };
     static constexpr int   kWORLD_HEIGHT { kROWS * kTILE_SIZE };
 
-    static constexpr int   kCENTER_ROW   { 5 };
+    static constexpr int   kCENTER_ROW   { 7 };
     static constexpr float kSCROLL_LINE  { kCENTER_ROW * kTILE_SIZE };
 
 private:
@@ -67,10 +67,6 @@ public:
         World::s_yOffset += dy;
     }
 
-    static void resetOffsetY() {
-        World::s_yOffset = 0.f;
-    }
-
     static float getOffsetY() {
         return World::s_yOffset;
     }
@@ -83,6 +79,19 @@ public:
     Tile getTile(int x, int y) const {
         assert(inGridBounds(x, y));
         return m_grid[y][x];
+    }
+
+    void destroyMatchingTiles(int x, int y, Tile type) {
+        if (!inGridBounds(x, y) || getTile(x, y) != type) {
+            return;
+        }
+
+        setTile(x, y, Tile::TILE_EMPTY);
+
+        destroyMatchingTiles(x + 1, y,     type);
+        destroyMatchingTiles(x - 1, y,     type);
+        destroyMatchingTiles(x,     y + 1, type);
+        destroyMatchingTiles(x,     y - 1, type);
     }
 
     void generateInitialGrid() {

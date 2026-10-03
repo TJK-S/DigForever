@@ -50,7 +50,7 @@ public:
 
         m_player.setFacing(facing);
         m_player.stopDig();
-        if (dig && !m_prevDig && m_player.isOnGround()) {
+        if (dig && !m_prevDig) {
             m_player.startDig();
         }
 

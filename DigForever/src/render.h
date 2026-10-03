@@ -32,11 +32,12 @@ private:
         SCREEN_WIDTH / 2 - (World::kCOLS * World::kTILE_SIZE) /2 };
 
     static constexpr int kY_OFFSET {
-        -World::kTILE_SIZE};
+        -World::kTILE_SIZE * 3};
 
     const Game& m_game;
 public:
     Renderer(const Game& game) : m_game(game) {}
+
     void renderWorld() {
         const World& world = m_game.getWorld();
 
