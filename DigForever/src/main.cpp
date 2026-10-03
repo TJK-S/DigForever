@@ -20,7 +20,7 @@ int main() {
         
         // Draw
         ::BeginDrawing();
-        ::ClearBackground(::RAYWHITE);
+        ::ClearBackground(::GRAY);
 
         renderer.renderWorld();
         renderer.renderPlayer();

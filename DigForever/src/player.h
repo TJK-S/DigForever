@@ -108,11 +108,11 @@ private:
             move -= sign;
         }
     }
-    
+
 public:
     Player() 
     :   m_xPos{static_cast<float>(World::kCOLS * World::kTILE_SIZE) * 0.5f},
-        m_yPos{0.f}
+        m_yPos{World::kSCROLL_LINE - World::kTILE_SIZE}
     {}
 
     void update(float dt, const std::array<Tile, World::kCOLS * World::kROWS>& tiles) {        
@@ -127,6 +127,8 @@ public:
     void  setFacing(Direction dir) { m_direction = dir; }
     void  startDig()               { m_digging = true; }
     void  stopDig()                { m_digging = false; }
+    void  shiftY(float dy)         { m_yPos += dy; }
+
 
     float getPosX()          const { return m_xPos; }
     float getPosY()          const { return m_yPos; }

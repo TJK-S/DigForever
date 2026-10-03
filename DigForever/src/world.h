@@ -17,17 +17,22 @@ enum class Tile {
 
 class World {
 public:
-    static constexpr int kCOLS { 7 };
-    static constexpr int kROWS { 11 };
-    static constexpr int kTILE_SIZE { 32 };
+    static constexpr int   kCOLS         { 7 };
+    static constexpr int   kROWS         { 14 };
+    static constexpr int   kTILE_SIZE    { 32 };
 
-    static constexpr int kWORLD_WIDTH  { kCOLS * kTILE_SIZE };
-    static constexpr int kWORLD_HEIGHT { kROWS * kTILE_SIZE };
+    static constexpr int   kWORLD_WIDTH  { kCOLS * kTILE_SIZE };
+    static constexpr int   kWORLD_HEIGHT { kROWS * kTILE_SIZE };
 
-    static constexpr int kCENTER_ROW = 6;
+    static constexpr int   kCENTER_ROW   { 5 };
+    static constexpr float kSCROLL_LINE  { kCENTER_ROW * kTILE_SIZE };
 
 private:
+    // could optimize this to be array of arrays
+    // this way the build one row function isnt changing
+    // litterally all kCOLS * kROWS
     std::array<Tile, kROWS * kCOLS> m_grid;
+    inline static float s_yOffset { 0.f };
 
 public:
     static float gridToWorldPosX(float x) {
@@ -35,7 +40,7 @@ public:
     }
 
     static float gridToWorldPosY(float y) {
-        return static_cast<float>(y * kTILE_SIZE);
+        return static_cast<float>(y * kTILE_SIZE) + World::s_yOffset;
     }
 
     static int worldToGridPosX(float x) {
@@ -46,13 +51,29 @@ public:
         return static_cast<int>(y / kTILE_SIZE);
     }
 
+    static bool inGridBounds(int x, int y) {
+        return x <= kCOLS && y <= kROWS;
+    }
+
+    static void shiftOffsetY(float dy) {
+        World::s_yOffset += dy;
+    }
+
+    static void resetOffsetY() {
+        World::s_yOffset = 0.f;
+    }
+
+    static float getOffsetY() {
+        return World::s_yOffset;
+    }
+
     void setTile(int x, int y, Tile type) {
-        assert(x <= kCOLS && y <= kROWS);
+        assert(inGridBounds(x, y));
         m_grid[x + kCOLS * y] = type;
     }
 
     Tile getTile(int x, int y) const {
-        assert(x <= kCOLS && y <= kROWS);
+        assert(inGridBounds(x, y));
         return m_grid[x + kCOLS * y];
     }
 
@@ -69,7 +90,7 @@ public:
         }
     }
 
-    void advanceOneRow() {
+    void buildOneRow() {
         std::random_device rd;
         std::mt19937 gen(rd());
  
@@ -90,7 +111,9 @@ public:
     }
     const std::array<Tile, kROWS * kCOLS>& getTiles() const { return m_grid; }
     
-    World() { generateInitialGrid(); }
+    World() {
+        generateInitialGrid();
+    }
 };
 
 #endif
