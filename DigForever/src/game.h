@@ -18,7 +18,8 @@ public:
     void update(float dt) {
         m_input.handleInput();
         m_player.update(dt, m_world.getTiles());
-
+        m_world.updateFallingTiles(dt);
+        
         const float overshoot = m_player.getPosY() + Player::kY_SIZE - World::kSCROLL_LINE;
         if (overshoot > 0.f) {
             m_world.shiftOffsetY(-overshoot);

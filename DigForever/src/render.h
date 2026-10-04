@@ -63,7 +63,16 @@ public:
                     ::WHITE
                 );
             }
-        }  
+        }
+
+        for (const FallingTile& f : world.getFallingTiles()) {
+            ::DrawTexture(
+                getTexture2DFromTile(f.tile.type),
+                kX_OFFSET + f.col * World::kTILE_SIZE,
+                kY_OFFSET + static_cast<int>(World::fallingTileWorldPosY(f)),
+                ::WHITE
+            );
+        }
     }
 
     void renderPlayer() {

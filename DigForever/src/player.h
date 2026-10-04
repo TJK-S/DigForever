@@ -97,7 +97,7 @@ private:
         m_onGround = false;
         
         while (move != 0) {
-            if (collidesAt(m_xPos, m_yPos + sign, tiles) ||
+            if (collidesAt(m_xPos, m_yPos + sign, tiles) || m_yPos + sign < 0.f ||
                 m_yPos + sign + kY_SIZE > World::kWORLD_HEIGHT) {
                 m_yVelocity = 0.f; 
                 m_yRemainder = 0.f;

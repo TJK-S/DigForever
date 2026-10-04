@@ -18,7 +18,7 @@ int main() {
     );
     
     ::SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
-    ::SetTargetFPS(0);
+    ::SetTargetFPS(60);
     
     Game game;
     Renderer renderer { game };
