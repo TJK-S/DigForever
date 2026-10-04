@@ -174,7 +174,60 @@ private:
                !hasMatchingNeighbor(x, y);
     }
 
-    int findLandingRow(int col, int row) {
+    bool isSupportedFromBelow(int x, int y, TileType groupType) const {
+        if (y >= kROWS - 1) { return true; }
+
+        const TileType below = m_grid[y + 1][x].type;
+        if (below == groupType)           { return false; }
+        if (below != TileType::TILE_EMPTY) { return true; }
+
+        return isReserved(x, y + 1);
+    }
+
+    bool groupIsFloating(int x, int y) const {
+        if (!inGridBounds(x, y)) { return false; }
+
+        const TileType type = m_grid[y][x].type;
+        if (type == TileType::TILE_EMPTY || type == TileType::TILE_TOUGH) { return false; }
+
+
+        std::array<std::array<bool, kCOLS>, kROWS> visited {};  // keep track of visited tiles to avoid double counting
+        std::array<std::pair<int, int>, kCOLS * kROWS> toVisit; // each pair here used in tryAddTile
+        int numToVisit = 0;
+
+        auto tryAddTile = [&](int tileX, int tileY) -> void {
+            if (!inGridBounds(tileX, tileY))         { return; }
+            if (visited[tileY][tileX])               { return; }
+            if (m_grid[tileY][tileX].type != type)   { return; }
+
+            visited[tileY][tileX] = true;
+            toVisit[numToVisit] = { tileX, tileY };
+            ++numToVisit;
+        };
+
+        tryAddTile(x, y);
+
+        // visit tiles anc check if they are supported below.
+        // A visit means that this tile is good and we should check
+        // adjacent tiles too see if they are also good and then visit them as well
+        while (numToVisit > 0) {
+            --numToVisit;
+            const std::pair<int, int> current = toVisit[numToVisit];
+
+            if (isSupportedFromBelow(current.first, current.second, type)) {
+                return false;
+            }
+
+            tryAddTile(current.first + 1, current.second    );
+            tryAddTile(current.first - 1, current.second    );
+            tryAddTile(current.first,     current.second + 1);
+            tryAddTile(current.first,     current.second - 1);
+        }
+
+        return true;
+    }
+
+    int findLandingRow(int col, int row) const {
         for (int r = row + 1; r < kROWS; ++r) {
             if (m_grid[r][col].type != TileType::TILE_EMPTY || isReserved(col, r)) {
                 return r - 1;
@@ -187,7 +240,7 @@ private:
     void startFallingTiles() {
         for (int col = 0; col < kCOLS; ++col) {
             for (int row = kROWS - 2; row >= 0; --row) {
-                if (!isFloating(col, row)) {
+                if (!groupIsFloating(col, row)) {
                     continue;
                 }
  
