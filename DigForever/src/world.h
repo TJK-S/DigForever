@@ -43,6 +43,48 @@ private:
     std::uniform_int_distribution<int> m_tileDistr { 
         1, static_cast<int>(TileType::NUM_TILES) - 1}; // not including 0 which is the empty tile
 
+private:
+    void destroyMatchingTiles(int x, int y, Tile tile) {
+        if (!inGridBounds(x, y) || getTile(x, y).type != tile.type) {
+            return;
+        }
+
+        setTile(x, y, Tile{});
+
+        if (tile.type == TileType::TILE_TOUGH) {
+            return; 
+        }
+
+        destroyMatchingTiles(x + 1, y,     tile);
+        destroyMatchingTiles(x - 1, y,     tile);
+        destroyMatchingTiles(x,     y + 1, tile);
+        destroyMatchingTiles(x,     y - 1, tile);
+    }
+
+    Tile makeRandomTile() {
+        const int randDistrNum = m_tileDistr(m_rng);
+        const TileType type = static_cast<TileType>(randDistrNum);
+        const int numHits = 
+            (randDistrNum < static_cast<int>(TileType::TILE_TOUGH)) 
+            ? 1 : 5;
+            
+        return Tile{ type, numHits };
+    }
+
+    void generateInitialGrid() {
+        for (int col = 0; col < kCOLS; ++col) {
+            for (int row = 0; row < kROWS; ++row) {
+                if (row <= kCENTER_ROW) {
+                    setTile(col, row, Tile{}); // default empty tile
+                } 
+                else {
+                    const Tile tile = makeRandomTile();
+                    setTile(col, row, tile);
+                }
+            }
+        }
+    }
+
 public:
     static float gridToWorldPosX(int x) {
         return static_cast<float>(x * kTILE_SIZE);
@@ -91,47 +133,6 @@ public:
 
         destroyMatchingTiles(x, y, tile);
         return true;
-    }
-
-    void destroyMatchingTiles(int x, int y, Tile tile) {
-        if (!inGridBounds(x, y) || getTile(x, y).type != tile.type) {
-            return;
-        }
-
-        setTile(x, y, Tile{});
-
-        if (tile.type == TileType::TILE_TOUGH) {
-            return; 
-        }
-
-        destroyMatchingTiles(x + 1, y,     tile);
-        destroyMatchingTiles(x - 1, y,     tile);
-        destroyMatchingTiles(x,     y + 1, tile);
-        destroyMatchingTiles(x,     y - 1, tile);
-    }
-
-    Tile makeRandomTile() {
-        const int randDistrNum = m_tileDistr(m_rng);
-        const TileType type = static_cast<TileType>(randDistrNum);
-        const int numHits = 
-            (randDistrNum < static_cast<int>(TileType::TILE_TOUGH)) 
-            ? 1 : 5;
-            
-        return Tile{ type, numHits };
-    }
-
-    void generateInitialGrid() {
-        for (int col = 0; col < kCOLS; ++col) {
-            for (int row = 0; row < kROWS; ++row) {
-                if (row <= kCENTER_ROW) {
-                    setTile(col, row, Tile{}); // default empty tile
-                } 
-                else {
-                    const Tile tile = makeRandomTile();
-                    setTile(col, row, tile);
-                }
-            }
-        }
     }
 
     void buildOneRow() {

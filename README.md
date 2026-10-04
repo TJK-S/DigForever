@@ -1,3 +1,10 @@
+How to play:
+  A / D: Move left / right + aim the dig is respective direction
+  W / S: Aim the dig up / down
+  Space: Jump
+  J:     Dig in the direction you are aiming
+  Esc:   Quit
+
 Prerequisites:
   - Git
   - CMake 3.25 or newer

@@ -10,10 +10,10 @@
 #define RENDER_H
 
 namespace {
-    Texture2D& getTexture2DFromTile(TileType tile) {
+    ::Texture2D& getTexture2DFromTile(TileType tile) {
         const char* assetPath = "DigForever/assets/Tile_";
 
-        static std::unordered_map<TileType, Texture2D> tileTextures {
+        static std::unordered_map<TileType, ::Texture2D> tileTextures {
             { TileType::TILE_RED,   ::LoadTexture(::TextFormat("%sRed.png",   assetPath)) }, 
             { TileType::TILE_GREEN, ::LoadTexture(::TextFormat("%sGreen.png", assetPath)) },
             { TileType::TILE_BLUE,  ::LoadTexture(::TextFormat("%sBlue.png",  assetPath)) },
@@ -26,12 +26,12 @@ namespace {
 
 class Renderer {
 public:
-    static constexpr int SCREEN_WIDTH  { 640 };
-    static constexpr int SCREEN_HEIGHT { 360 };
+    static constexpr int kVIRTUAL_SCREEN_WIDTH  { 640 };
+    static constexpr int kVIRTUAL_SCREEN_HEIGHT { 360 };
 
 private:
     static constexpr int kX_OFFSET { 
-        SCREEN_WIDTH / 2 - (World::kCOLS * World::kTILE_SIZE) /2 };
+        kVIRTUAL_SCREEN_WIDTH / 2 - (World::kCOLS * World::kTILE_SIZE) /2 };
 
     static constexpr int kY_OFFSET {
         -World::kTILE_SIZE * 3};
