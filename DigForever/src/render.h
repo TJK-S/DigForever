@@ -2,23 +2,25 @@
 
 #include <raylib.h>
 
+#include <unordered_map>
+
 #include "game.h"
 
 #ifndef RENDER_H
 #define RENDER_H
 
 namespace {
-    Color getTileColor(TileType tile) {
-        switch (tile) {
-            case TileType::TILE_EMPTY: return ::WHITE;
-            case TileType::TILE_RED:   return ::RED;
-            case TileType::TILE_GREEN: return ::GREEN;
-            case TileType::TILE_BLUE:  return ::BLUE;
-            case TileType::TILE_TOUGH: return ::BLACK;
-            default:               return ::WHITE;
-        }
-        // in case the compiler complains
-        return ::WHITE;
+    Texture2D& getTexture2DFromTile(TileType tile) {
+        const char* assetPath = "DigForever/assets/Tile_";
+
+        static std::unordered_map<TileType, Texture2D> tileTextures {
+            { TileType::TILE_RED,   ::LoadTexture(::TextFormat("%sRed.png",   assetPath)) }, 
+            { TileType::TILE_GREEN, ::LoadTexture(::TextFormat("%sGreen.png", assetPath)) },
+            { TileType::TILE_BLUE,  ::LoadTexture(::TextFormat("%sBlue.png",  assetPath)) },
+            { TileType::TILE_TOUGH, ::LoadTexture(::TextFormat("%sTough.png", assetPath)) }
+        };
+
+        return tileTextures.at(tile);
     }
 } // namespace
 
@@ -46,11 +48,20 @@ public:
                 const int xPos = col * World::kTILE_SIZE;
                 const int yPos = row * World::kTILE_SIZE;
 
-                const Color color = getTileColor(world.getTile(col, row).type);
+                const Tile& tile = world.getTile(col, row);
+                if (tile.type == TileType::TILE_EMPTY) {
+                    ::DrawRectangle(
+                        kX_OFFSET + xPos, kY_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
+                        World::kTILE_SIZE, World::kTILE_SIZE, ::WHITE);
+                    
+                    continue;
+                }
 
-                ::DrawRectangle(
+                ::DrawTexture(
+                    getTexture2DFromTile(tile.type), 
                     kX_OFFSET + xPos, kY_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
-                    World::kTILE_SIZE, World::kTILE_SIZE, color);
+                    ::WHITE
+                );
             }
         }  
     }
