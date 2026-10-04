@@ -65,11 +65,20 @@ public:
             }
         }
 
-        for (const FallingTile& f : world.getFallingTiles()) {
+        for (const FallingTile& fallingTile : world.getFallingTiles()) {
+            const float timer = fallingTile.fallTimer;
+
+            constexpr int   kWobblePattern[] { 0, 1, 2, 1, 0, -1, -2, -1 };
+            constexpr float kStepsPerSecond  { 30.f };
+
+            const int step = static_cast<int>(timer * kStepsPerSecond) % 8;
+            const int wobbleX = (timer >= 0.5f && timer < FallingTile::kTIME_BEFORE_FALL)
+                              ? kWobblePattern[step] : 0;
+
             ::DrawTexture(
-                getTexture2DFromTile(f.tile.type),
-                kX_OFFSET + f.col * World::kTILE_SIZE,
-                kY_OFFSET + static_cast<int>(World::fallingTileWorldPosY(f)),
+                getTexture2DFromTile(fallingTile.tile.type),
+                wobbleX + kX_OFFSET + fallingTile.col * World::kTILE_SIZE,
+                kY_OFFSET + static_cast<int>(world.fallingTileWorldPosY(fallingTile)),
                 ::WHITE
             );
         }

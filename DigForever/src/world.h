@@ -111,7 +111,7 @@ private:
         return false;
     }
 
-    bool hasMatchingNeigbor(int x, int y) const {
+    bool hasMatchingNeighbor(int x, int y) const {
         const TileType type = m_grid[y][x].type;
 
         if ((inGridBounds(x + 1, y    ) && m_grid[y][x + 1].type == type) ||
@@ -171,7 +171,7 @@ private:
         return m_grid[y][x].type     != TileType::TILE_EMPTY &&
                m_grid[y][x].type     != TileType::TILE_TOUGH &&
                m_grid[y + 1][x].type == TileType::TILE_EMPTY &&
-               !hasMatchingNeigbor(x, y);
+               !hasMatchingNeighbor(x, y);
     }
 
     int findLandingRow(int col, int row) {
