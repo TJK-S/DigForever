@@ -2,23 +2,25 @@
 
 #include <raylib.h>
 
+#include <unordered_map>
+
 #include "game.h"
 
 #ifndef RENDER_H
 #define RENDER_H
 
 namespace {
-    Color getTileColor(Tile tile) {
-        switch (tile) {
-            case Tile::TILE_EMPTY: return ::WHITE;
-            case Tile::TILE_RED:   return ::RED;
-            case Tile::TILE_GREEN: return ::GREEN;
-            case Tile::TILE_BLUE:  return ::BLUE;
-            case Tile::TILE_TOUGH: return ::BLACK;
-            default:               return ::WHITE;
-        }
-        // in case the compiler complains
-        return ::WHITE;
+    Texture2D& getTexture2DFromTile(Tile tile) {
+        const char* assetPath = "DigForever/assets/Tile_";
+
+        static std::unordered_map<Tile, Texture2D> tileTextures {
+            { Tile::TILE_RED,   ::LoadTexture(::TextFormat("%sRed.png",   assetPath)) }, 
+            { Tile::TILE_GREEN, ::LoadTexture(::TextFormat("%sGreen.png", assetPath)) },
+            { Tile::TILE_BLUE,  ::LoadTexture(::TextFormat("%sBlue.png",  assetPath)) },
+            { Tile::TILE_TOUGH, ::LoadTexture(::TextFormat("%sTough.png", assetPath)) }
+        };
+
+        return tileTextures.at(tile);
     }
 } // namespace
 
@@ -46,11 +48,20 @@ public:
                 const int xPos = col * World::kTILE_SIZE;
                 const int yPos = row * World::kTILE_SIZE;
 
-                const Color color = getTileColor(world.getTile(col, row));
+                const Tile& tile = world.getTile(col, row);
+                if (tile == Tile::TILE_EMPTY) {
+                    ::DrawRectangle(
+                        kX_OFFSET + xPos, kY_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
+                        World::kTILE_SIZE, World::kTILE_SIZE, ::WHITE);
+                    
+                    continue;;
+                }
 
-                ::DrawRectangle(
+                ::DrawTexture(
+                    getTexture2DFromTile(tile), 
                     kX_OFFSET + xPos, kY_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
-                    World::kTILE_SIZE, World::kTILE_SIZE, color);
+                    ::WHITE
+                );
             }
         }  
     }
