@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <utility>
 
 enum class TileType {
     TILE_EMPTY = 0,
@@ -39,8 +40,8 @@ struct FallingTile {
 
 class World {
 public:
-    static constexpr size_t kCOLS         { 7 };
-    static constexpr size_t kROWS         { 15 };
+    static constexpr int    kCOLS         { 7 };
+    static constexpr int    kROWS         { 15 };
     static constexpr int    kTILE_SIZE    { 32 };
 
     static constexpr int    kWORLD_WIDTH  { static_cast<int>(kCOLS) * kTILE_SIZE };
@@ -124,6 +125,46 @@ private:
         return false;
     }
 
+    int numMatchingNeighbors(int x, int y) const {
+        if (!inGridBounds(x, y)) { return 0; }
+
+        const TileType type = m_grid[y][x].type;
+        if (type == TileType::TILE_EMPTY) { return 0; }
+
+        std::array<std::array<bool, kCOLS>, kROWS> visited {};  // keep track of visited tiles to avoid double counting
+        std::array<std::pair<int, int>, kCOLS * kROWS> toVisit; // each pair here used in tryAddTile
+        int numToVisit = 0;
+
+        auto tryAddTile = [&](int tileX, int tileY) -> void {
+            if (!inGridBounds(tileX, tileY))         { return; }
+            if (visited[tileY][tileX])               { return; }
+            if (m_grid[tileY][tileX].type != type)   { return; }
+
+            visited[tileY][tileX] = true;
+            toVisit[numToVisit] = { tileX, tileY };
+            ++numToVisit;
+        };
+
+        tryAddTile(x, y);
+
+        int count = 0;
+        // visit tiles and increment count.
+        // A visit means that this tile is good and we should check
+        // adjacent tiles too see if they are also good and then visit them as well
+        while (numToVisit > 0) {
+            --numToVisit;
+            const std::pair<int, int> current = toVisit[numToVisit];
+            ++count;
+
+            tryAddTile(current.first + 1, current.second    );
+            tryAddTile(current.first - 1, current.second    );
+            tryAddTile(current.first,     current.second + 1);
+            tryAddTile(current.first,     current.second - 1);
+        }
+
+        return count;
+    }
+
     bool isFloating(int x, int y) const {
         if (y >= kROWS - 1) { return false; }
 
@@ -169,7 +210,8 @@ private:
         }
     }
 
-    void landTile(const FallingTile& fallingTile) {
+    // returns the row it landed in
+    int landTile(const FallingTile& fallingTile) {
         // Normally the target is empty because it was reserved
         // settle in the nearest empty cell above it instead of overwriting
         int row = fallingTile.targetRow;
@@ -179,6 +221,8 @@ private:
         if (row >= 0) {
             m_grid[row][fallingTile.col] = fallingTile.tile;
         }
+
+        return row;
     }
 
 public:
@@ -242,8 +286,10 @@ public:
         for (std::size_t i = 0; i < m_fallingTiles.size();) {
             FallingTile& fallingTile = m_fallingTiles[i];
 
-            fallingTile.fallTimer += dt;
+            
             if (fallingTile.fallTimer < FallingTile::kTIME_BEFORE_FALL) {
+                fallingTile.fallTimer += dt;
+                ++i;
                 continue;
             }
 
@@ -252,7 +298,13 @@ public:
             const float landingOffset = 
                 static_cast<float>((fallingTile.targetRow - fallingTile.startRow) * kTILE_SIZE);
             if (fallingTile.fallOffset >= landingOffset) {
-                landTile(fallingTile);
+                constexpr int minTilesForLandDestruction = 4;
+
+                const int landedRow = landTile(fallingTile);
+                if (landedRow >= 0 && numMatchingNeighbors(fallingTile.col, landedRow) >= minTilesForLandDestruction) {
+                    destroyMatchingTiles(fallingTile.col, landedRow, fallingTile.tile);
+                }
+
                 m_fallingTiles[i] = m_fallingTiles.back();
                 m_fallingTiles.pop_back();
             }
