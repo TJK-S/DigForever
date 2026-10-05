@@ -3,13 +3,11 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <random>
-#include <memory>
 #include <vector>
-#include <algorithm>
-#include <utility>
 
 enum class TileType {
     TILE_EMPTY = 0,
@@ -44,13 +42,24 @@ public:
     static constexpr int    kROWS         { 15 };
     static constexpr int    kTILE_SIZE    { 32 };
 
-    static constexpr int    kWORLD_WIDTH  { static_cast<int>(kCOLS) * kTILE_SIZE };
-    static constexpr int    kWORLD_HEIGHT { static_cast<int>(kROWS) * kTILE_SIZE };
+    static constexpr int    kWORLD_WIDTH  { kCOLS * kTILE_SIZE };
+    static constexpr int    kWORLD_HEIGHT { kROWS * kTILE_SIZE };
 
     static constexpr int    kCENTER_ROW   { 7 };
     static constexpr float  kSCROLL_LINE  { kCENTER_ROW * kTILE_SIZE };
 
+    static constexpr int    kMIN_GROUP_TO_CLEAR { 4 }; // landing tiles kill groups of this size or larger
+
 private:
+    struct GridPos {
+        int x; int y; 
+    };
+
+    struct TileGroup {
+        std::array<GridPos, kCOLS * kROWS> tiles {};
+        int count { 0 };
+    };
+
     std::array<std::array<Tile, kCOLS>, kROWS> m_grid;
     std::vector<FallingTile> m_fallingTiles;
     inline static float s_yOffset { 0.f };
@@ -60,22 +69,7 @@ private:
         1, static_cast<int>(TileType::NUM_TILES) - 1}; // not including 0 which is the empty tile
 
 private:
-    void destroyMatchingTiles(int x, int y, Tile tile) {
-        if (!inGridBounds(x, y) || getTile(x, y).type != tile.type) {
-            return;
-        }
-
-        setTile(x, y, Tile{});
-
-        if (tile.type == TileType::TILE_TOUGH) {
-            return; 
-        }
-
-        destroyMatchingTiles(x + 1, y,     tile);
-        destroyMatchingTiles(x - 1, y,     tile);
-        destroyMatchingTiles(x,     y + 1, tile);
-        destroyMatchingTiles(x,     y - 1, tile);
-    }
+    // grid generation
 
     Tile makeRandomTile() {
         const int randDistrNum = m_tileDistr(m_rng);
@@ -101,38 +95,24 @@ private:
         }
     }
 
-    bool isReserved(int x, int y) const {
-        for (const FallingTile& fallingTile : m_fallingTiles) {
-            if (fallingTile.col == x && fallingTile.targetRow == y) {
-                return true;
-            }
-        }
+    // groups 
 
-        return false;
-    }
+    TileGroup findGroup (int x, int y) const {
+        TileGroup group;
 
-    bool hasMatchingNeighbor(int x, int y) const {
-        const TileType type = m_grid[y][x].type;
-
-        if ((inGridBounds(x + 1, y    ) && m_grid[y][x + 1].type == type) ||
-            (inGridBounds(x - 1, y    ) && m_grid[y][x - 1].type == type) ||
-            (inGridBounds(x,     y + 1) && m_grid[y + 1][x].type == type) ||
-            (inGridBounds(x,     y - 1) && m_grid[y - 1][x].type == type)) { 
-            
-            return true; 
-        }
-
-        return false;
-    }
-
-    int numMatchingNeighbors(int x, int y) const {
-        if (!inGridBounds(x, y)) { return 0; }
+        if (!inGridBounds(x, y)) { return group; }
 
         const TileType type = m_grid[y][x].type;
-        if (type == TileType::TILE_EMPTY) { return 0; }
+        if (type == TileType::TILE_EMPTY) { return group; }
+
+        if (type == TileType::TILE_TOUGH) {
+            group.tiles[0] = GridPos{ x, y };
+            group.count = 1;
+            return group;
+        }
 
         std::array<std::array<bool, kCOLS>, kROWS> visited {};  // keep track of visited tiles to avoid double counting
-        std::array<std::pair<int, int>, kCOLS * kROWS> toVisit; // each pair here used in tryAddTile
+        std::array<GridPos, kCOLS * kROWS> toVisit;             // each GridPos here used in tryAddTile
         int numToVisit = 0;
 
         auto tryAddTile = [&](int tileX, int tileY) -> void {
@@ -145,33 +125,47 @@ private:
             ++numToVisit;
         };
 
+
         tryAddTile(x, y);
 
-        int count = 0;
-        // visit tiles and increment count.
-        // A visit means that this tile is good and we should check
-        // adjacent tiles too see if they are also good and then visit them as well
         while (numToVisit > 0) {
             --numToVisit;
-            const std::pair<int, int> current = toVisit[numToVisit];
-            ++count;
+            const GridPos current = toVisit[numToVisit];
 
-            tryAddTile(current.first + 1, current.second    );
-            tryAddTile(current.first - 1, current.second    );
-            tryAddTile(current.first,     current.second + 1);
-            tryAddTile(current.first,     current.second - 1);
+            group.tiles[group.count] = current;
+            ++group.count;
+
+            tryAddTile(current.x + 1, current.y    );
+            tryAddTile(current.x - 1, current.y    );
+            tryAddTile(current.x,     current.y + 1);
+            tryAddTile(current.x,     current.y - 1);
         }
 
-        return count;
+        return group;
     }
 
-    bool isFloating(int x, int y) const {
-        if (y >= kROWS - 1) { return false; }
+    int countMatchingGroup(int x, int y) const {
+        return findGroup(x, y).count;
+    }
 
-        return m_grid[y][x].type     != TileType::TILE_EMPTY &&
-               m_grid[y][x].type     != TileType::TILE_TOUGH &&
-               m_grid[y + 1][x].type == TileType::TILE_EMPTY &&
-               !hasMatchingNeighbor(x, y);
+    void destroyGroup(int x, int y) {
+        const TileGroup group = findGroup(x, y);
+        for (int i = 0; i <group.count; ++i) {
+            const GridPos& tile = group.tiles[i];
+            m_grid[tile.y][tile.x] = Tile {}; 
+        }
+    }
+
+    // floating
+
+    bool isReserved(int x, int y) const {
+        for (const FallingTile& fallingTile : m_fallingTiles) {
+            if (fallingTile.col == x && fallingTile.targetRow == y) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     bool isSupportedFromBelow(int x, int y, TileType groupType) const {
@@ -184,20 +178,6 @@ private:
         return isReserved(x, y + 1);
     }
 
-    bool targetIsUnsupported(const FallingTile& fallingTile) {
-        const int col = fallingTile.col;
-        const int row = fallingTile.targetRow;
-
-        if (row < 0 || row >= kROWS - 1)                    { return false; }
-        if (m_grid[row][col].type != TileType::TILE_EMPTY)  { return false; }
-
-        m_grid[row][col] = fallingTile.tile;        // pretend it landed
-        const bool floating = groupIsFloating(col, row);
-        m_grid[row][col] = Tile{};                  // undo
-
-        return floating;
-    }
-
     bool groupIsFloating(int x, int y) const {
         if (!inGridBounds(x, y)) { return false; }
 
@@ -206,7 +186,7 @@ private:
 
 
         std::array<std::array<bool, kCOLS>, kROWS> visited {};  // keep track of visited tiles to avoid double counting
-        std::array<std::pair<int, int>, kCOLS * kROWS> toVisit; // each pair here used in tryAddTile
+        std::array<GridPos, kCOLS * kROWS> toVisit; // each pair here used in tryAddTile
         int numToVisit = 0;
 
         auto tryAddTile = [&](int tileX, int tileY) -> void {
@@ -226,20 +206,22 @@ private:
         // adjacent tiles too see if they are also good and then visit them as well
         while (numToVisit > 0) {
             --numToVisit;
-            const std::pair<int, int> current = toVisit[numToVisit];
+            const GridPos current = toVisit[numToVisit];
 
-            if (isSupportedFromBelow(current.first, current.second, type)) {
+            if (isSupportedFromBelow(current.x, current.y, type)) {
                 return false;
             }
 
-            tryAddTile(current.first + 1, current.second    );
-            tryAddTile(current.first - 1, current.second    );
-            tryAddTile(current.first,     current.second + 1);
-            tryAddTile(current.first,     current.second - 1);
+            tryAddTile(current.x + 1, current.y    );
+            tryAddTile(current.x - 1, current.y    );
+            tryAddTile(current.x,     current.y + 1);
+            tryAddTile(current.x,     current.y - 1);
         }
 
         return true;
     }
+
+    // falling
 
     int findLandingRow(int col, int row) const {
         for (int r = row + 1; r < kROWS; ++r) {
@@ -277,6 +259,23 @@ private:
         }
     }
 
+    bool targetIsUnsupported(const FallingTile& fallingTile) {
+        const int col = fallingTile.col;
+        const int row = fallingTile.targetRow;
+
+        if (row < 0 || row >= kROWS - 1)                    { return false; }
+        if (m_grid[row][col].type != TileType::TILE_EMPTY)  { return false; }
+
+        m_grid[row][col] = fallingTile.tile;        // pretend it landed
+        const bool floating = groupIsFloating(col, row);
+        m_grid[row][col] = Tile{};                  // undo
+
+        return floating;
+    }
+
+
+    
+
     // returns the row it landed in
     int landTile(const FallingTile& fallingTile) {
         // Normally the target is empty because it was reserved
@@ -290,6 +289,38 @@ private:
         }
 
         return row;
+    }
+
+    bool updateFallingTile(FallingTile& fallingTile, float dt) {
+        // wobble in place before dropping
+        if (fallingTile.fallTimer < FallingTile::kTIME_BEFORE_FALL) {
+            fallingTile.fallTimer += dt;
+            return false;
+        }
+ 
+        fallingTile.fallOffset += FallingTile::kFALL_SPEED * dt;
+ 
+        const float landingOffset = 
+            static_cast<float>((fallingTile.targetRow - fallingTile.startRow) * kTILE_SIZE);
+        if (fallingTile.fallOffset < landingOffset) {
+            return false;
+        }
+ 
+        // support below the target was removed while falling: aim lower and keep going
+        if (targetIsUnsupported(fallingTile)) {
+            const int newTargetRow = findLandingRow(fallingTile.col, fallingTile.targetRow);
+            if (newTargetRow > fallingTile.targetRow) {
+                fallingTile.targetRow = newTargetRow;
+                return false;
+            }
+        }
+ 
+        const int landedRow = landTile(fallingTile);
+        if (landedRow >= 0 && countMatchingGroup(fallingTile.col, landedRow) >= kMIN_GROUP_TO_CLEAR) {
+            destroyGroup(fallingTile.col, landedRow);
+        }
+ 
+        return true;
     }
 
 public:
@@ -343,7 +374,7 @@ public:
             return false;
         }
 
-        destroyMatchingTiles(x, y, tile);
+        destroyGroup(x, y);
         return true;
     }
 
@@ -351,38 +382,9 @@ public:
         startFallingTiles();
  
         for (std::size_t i = 0; i < m_fallingTiles.size();) {
-            FallingTile& fallingTile = m_fallingTiles[i];
-
-            
-            if (fallingTile.fallTimer < FallingTile::kTIME_BEFORE_FALL) {
-                fallingTile.fallTimer += dt;
-                ++i;
-                continue;
-            }
-
-            fallingTile.fallOffset += FallingTile::kFALL_SPEED * dt;
- 
-            const float landingOffset = 
-                static_cast<float>((fallingTile.targetRow - fallingTile.startRow) * kTILE_SIZE);
-            if (fallingTile.fallOffset >= landingOffset) {
-                // support below the target was removed while falling: aim lower and keep going
-                if (targetIsUnsupported(fallingTile)) {
-                    const int newTargetRow = findLandingRow(fallingTile.col, fallingTile.targetRow);
-                    if (newTargetRow > fallingTile.targetRow) {
-                        fallingTile.targetRow = newTargetRow;
-                        ++i;
-                        continue;
-                    }
-                }
-
-                constexpr int minTilesForLandDestruction = 4;
-
-                const int landedRow = landTile(fallingTile);
-                if (landedRow >= 0 && numMatchingNeighbors(fallingTile.col, landedRow) >= minTilesForLandDestruction) {
-                    destroyMatchingTiles(fallingTile.col, landedRow, fallingTile.tile);
-                }
-
-                m_fallingTiles[i] = m_fallingTiles.back();
+            const bool landed = updateFallingTile(m_fallingTiles[i], dt);
+            if (landed) {
+                m_fallingTiles[i] = m_fallingTiles.back();   // swap-and-pop removal
                 m_fallingTiles.pop_back();
             }
             else {
