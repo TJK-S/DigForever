@@ -17,6 +17,14 @@ public:
     
     void update(float dt) {
         m_input.handleInput();
+
+        // test
+        if (::IsKeyDown(::KEY_K)) {
+            m_world.clearTilesForRespawn(
+                World::worldToGridPosX(m_player.getPosX()), 
+                World::worldToGridPosY(m_player.getPosY()));
+        }
+
         m_player.update(dt, m_world.getTiles());
         m_world.updateFallingTiles(dt);
         

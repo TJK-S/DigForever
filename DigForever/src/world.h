@@ -184,6 +184,20 @@ private:
         return isReserved(x, y + 1);
     }
 
+    bool targetIsUnsupported(const FallingTile& fallingTile) {
+        const int col = fallingTile.col;
+        const int row = fallingTile.targetRow;
+
+        if (row < 0 || row >= kROWS - 1)                    { return false; }
+        if (m_grid[row][col].type != TileType::TILE_EMPTY)  { return false; }
+
+        m_grid[row][col] = fallingTile.tile;        // pretend it landed
+        const bool floating = groupIsFloating(col, row);
+        m_grid[row][col] = Tile{};                  // undo
+
+        return floating;
+    }
+
     bool groupIsFloating(int x, int y) const {
         if (!inGridBounds(x, y)) { return false; }
 
@@ -351,6 +365,16 @@ public:
             const float landingOffset = 
                 static_cast<float>((fallingTile.targetRow - fallingTile.startRow) * kTILE_SIZE);
             if (fallingTile.fallOffset >= landingOffset) {
+                // support below the target was removed while falling: aim lower and keep going
+                if (targetIsUnsupported(fallingTile)) {
+                    const int newTargetRow = findLandingRow(fallingTile.col, fallingTile.targetRow);
+                    if (newTargetRow > fallingTile.targetRow) {
+                        fallingTile.targetRow = newTargetRow;
+                        ++i;
+                        continue;
+                    }
+                }
+
                 constexpr int minTilesForLandDestruction = 4;
 
                 const int landedRow = landTile(fallingTile);
@@ -388,6 +412,22 @@ public:
             std::remove_if(m_fallingTiles.begin(), m_fallingTiles.end(),
                            [](const FallingTile& f) { return f.targetRow < 0; }),
             m_fallingTiles.end());
+    }
+
+    bool clearTilesForRespawn(int x, int y) {
+        if (!m_fallingTiles.empty()) { return false; }
+
+        constexpr int kMinCol = 1;
+        constexpr int kMaxCol = kCOLS - 2;
+
+        const int clampedX = std::max(kMinCol, std::min(x, kMaxCol));
+        for (int col = clampedX - 1; col <= clampedX + 1; ++col) {
+            for (int row = 0; row <= y; ++row) {
+                m_grid[row][col] = Tile{};
+            }
+        }
+
+        return true;
     }
     
     const std::array<std::array<Tile, kCOLS>, kROWS>& getTiles() const { return m_grid; }
