@@ -14,10 +14,11 @@ namespace {
         const char* assetPath = "DigForever/assets/Tile_";
 
         static std::unordered_map<TileType, ::Texture2D> tileTextures {
-            { TileType::TILE_RED,   ::LoadTexture(::TextFormat("%sRed.png",   assetPath)) }, 
-            { TileType::TILE_GREEN, ::LoadTexture(::TextFormat("%sGreen.png", assetPath)) },
-            { TileType::TILE_BLUE,  ::LoadTexture(::TextFormat("%sBlue.png",  assetPath)) },
-            { TileType::TILE_TOUGH, ::LoadTexture(::TextFormat("%sTough.png", assetPath)) }
+            { TileType::TILE_RED,    ::LoadTexture(::TextFormat("%sRed.png",    assetPath)) }, 
+            { TileType::TILE_GREEN,  ::LoadTexture(::TextFormat("%sGreen.png",  assetPath)) },
+            { TileType::TILE_BLUE,   ::LoadTexture(::TextFormat("%sBlue.png",   assetPath)) },
+            { TileType::TILE_YELLOW, ::LoadTexture(::TextFormat("%sYellow.png", assetPath)) },
+            { TileType::TILE_TOUGH,  ::LoadTexture(::TextFormat("%sTough.png",  assetPath)) }
         };
 
         return tileTextures.at(tile);

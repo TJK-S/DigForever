@@ -3,20 +3,19 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include <algorithm>
-#include <array>
-#include <cassert>
 #include <random>
+#include <array>
 #include <vector>
 
 enum class TileType {
-    TILE_EMPTY = 0,
-    TILE_RED   = 1,
-    TILE_GREEN = 2,
-    TILE_BLUE  = 3,
+    TILE_EMPTY,
+    TILE_RED,
+    TILE_GREEN,
+    TILE_BLUE,
+    TILE_YELLOW,
 
-    TILE_TOUGH = 4, // must always be the tile before the NUM_TILES for underlying type comparisons
-    NUM_TILES  = 5
+    TILE_TOUGH, // must always be the tile before the NUM_TILES for underlying type comparisons
+    NUM_TILES
 };
 
 struct Tile {

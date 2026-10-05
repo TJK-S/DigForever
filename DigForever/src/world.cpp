@@ -1,5 +1,9 @@
 #include "world.h"
 
+#include <algorithm>
+#include <random>
+#include <cassert>
+
 // ========================================================
 // grid generation
 // ========================================================
