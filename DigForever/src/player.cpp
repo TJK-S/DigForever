@@ -12,26 +12,29 @@ void Player::applyGravity(float dt) {
     m_yVelocity += kGRAVITY * dt;
 }
 
-bool Player::collidesAt(float x, float y, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) const {
-    for (int col = 0; col < World::kCOLS; ++col) {
-        for (int row = 0; row < World::kROWS; ++row) {
-            const Tile& tile = tiles[row][col];
+bool Player::collidesAt(float x, float y, const World& world) const {
+    // the right/bottom edges are exclusive, so step just inside them
+    constexpr float kEdge = 0.01f;
 
-            if (tile.type == TileType::TILE_EMPTY) { continue; }
-        
-            if (hasIntersection(
-                x, y, kX_SIZE, kX_SIZE,
-                World::gridToWorldPosX(col),
-                World::gridToWorldPosY(row),
-                World::kTILE_SIZE, World::kTILE_SIZE)) {
-                    return true;
+    const int leftCol   = World::worldToGridPosX(x);
+    const int rightCol  = World::worldToGridPosX(x + kX_SIZE - kEdge);
+    const int topRow    = World::worldToGridPosY(y);
+    const int bottomRow = World::worldToGridPosY(y + kY_SIZE - kEdge);
+
+    for (int row = topRow; row <= bottomRow; ++row) {
+        for (int col = leftCol; col <= rightCol; ++col) {
+            if (!World::inGridBounds(col, row)) { continue; }
+
+            if (world.getTile(col, row).type != TileType::TILE_EMPTY) {
+                return true;
             }
         }
     }
+
     return false;
 }
 
-void Player::moveX(float amount, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) {
+void Player::moveX(float amount, const World& world) {
     m_xRemainder += amount;
     int move = static_cast<int>(std::round(m_xRemainder));
     if (move == 0) { return; }
@@ -40,7 +43,7 @@ void Player::moveX(float amount, const std::array<std::array<Tile, World::kCOLS>
     const int sign = (move > 0) ? 1 : -1;
 
     while (move != 0) {
-        if (collidesAt(m_xPos + sign, m_yPos, tiles) || m_xPos + sign < 0.f || 
+        if (collidesAt(m_xPos + sign, m_yPos, world) || m_xPos + sign < 0.f || 
             m_xPos + sign + kX_SIZE > World::kWORLD_WIDTH) {
 
             m_xVelocity = 0.f;
@@ -52,7 +55,7 @@ void Player::moveX(float amount, const std::array<std::array<Tile, World::kCOLS>
     }
 }
 
-void Player::moveY(float amount, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) {
+void Player::moveY(float amount, const World& world) {
     m_yRemainder += amount;
     int move = static_cast<int>(std::round(m_yRemainder));
     if (move == 0) return;
@@ -62,7 +65,7 @@ void Player::moveY(float amount, const std::array<std::array<Tile, World::kCOLS>
     m_onGround = false;
     
     while (move != 0) {
-        if (collidesAt(m_xPos, m_yPos + sign, tiles) || m_yPos + sign < 0.f ||
+        if (collidesAt(m_xPos, m_yPos + sign, world) || m_yPos + sign < 0.f ||
             m_yPos + sign + kY_SIZE > World::kWORLD_HEIGHT) {
             m_yVelocity = 0.f; 
             m_yRemainder = 0.f;
@@ -83,11 +86,11 @@ Player::Player()
     m_yPos{World::kSCROLL_LINE + (World::kTILE_SIZE - Player::kY_SIZE)}
 {}
 
-void Player::update(float dt, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) {        
+void Player::update(float dt, const World& world) {        
     applyGravity(dt);
 
-    moveX(m_xVelocity * dt, tiles);
-    moveY(m_yVelocity * dt, tiles);
+    moveX(m_xVelocity * dt, world);
+    moveY(m_yVelocity * dt, world);
 }
 
 bool Player::hasIntersection(

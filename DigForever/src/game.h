@@ -37,7 +37,7 @@ public:
             }
         }
 
-        m_player.update(dt, m_world.getTiles());
+        m_player.update(dt, m_world);
         const std::vector<World::GridPos> landedTiles = m_world.updateFallingTiles(dt);
         for (const World::GridPos& pos : landedTiles) {
             const bool playerSmushed = Player::hasIntersection(
@@ -64,7 +64,7 @@ public:
         }
         
 
-        if (!m_player.isDigging() || !m_player.isDigging()) { return; }
+        if (!m_player.isDigging() || !m_player.isAlive()) { return; }
         
         int toRemoveX = World::worldToGridPosX(m_player.getPosX());
         int toRemoveY = World::worldToGridPosY(m_player.getPosY());

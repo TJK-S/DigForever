@@ -48,7 +48,7 @@ public:
     static constexpr float  kSCROLL_LINE  { kCENTER_ROW * kTILE_SIZE };
 
     static constexpr int    kMIN_GROUP_TO_CLEAR { 4 }; // landing tiles kill groups of this size or larger
-    
+
     struct GridPos { int x; int y; };
     
 private:
@@ -117,7 +117,7 @@ public:
     const Tile& getTile(int x, int y) const;
     const std::array<std::array<Tile, kCOLS>, kROWS>& getTiles() const;
     const std::vector<FallingTile>& getFallingTiles() const;
-
+    
     // class ----------------------------------------------
 
     World();

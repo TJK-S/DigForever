@@ -38,24 +38,14 @@ private:
     // physics --------------------------------------------
 
     void applyGravity(float dt);
-    bool collidesAt(
-        float x, float y,
-        const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) const;
-    
-    void moveX(
-        float amount, 
-        const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles);
-
-    void moveY(
-        float amount,
-        const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles);
+    bool collidesAt(float x, float y, const World& world) const;
+    void moveX(float amount, const World& world);
+    void moveY(float amount, const World& world);
 
 public:
     Player();
 
-    void update(
-        float dt, 
-        const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles);
+    void update(float dt, const World& world);
     
     static bool hasIntersection(
         float x1, float y1, float w1, float h1,
