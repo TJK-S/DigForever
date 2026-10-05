@@ -35,17 +35,12 @@ private:
     Direction m_direction { Direction::Down };
     bool m_digging        { false };
 
+    bool m_alive          { true };
+
 private:
     void applyGravity(float dt) {
         m_yVelocity += kGRAVITY * dt;
     }   
-    bool hasIntersection(
-        float x1, float y1, float w1, float h1,
-        float x2, float y2, float w2, float h2) const
-    {
-        return x1 < x2 + w2 && x1 + w1 > x2 &&
-               y1 < y2 + h2 && y1 + h1 > y2;
-    }
 
     bool collidesAt(float x, float y, const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& tiles) const {
         for (int col = 0; col < World::kCOLS; ++col) {
@@ -122,19 +117,29 @@ public:
         moveY(m_yVelocity * dt, tiles);
     }
 
+    static bool hasIntersection(
+        float x1, float y1, float w1, float h1,
+        float x2, float y2, float w2, float h2)
+    {
+        return x1 < x2 + w2 && x1 + w1 > x2 &&
+               y1 < y2 + h2 && y1 + h1 > y2;
+    }
+
     void  setVelocityX(float vel)  { m_xVelocity = vel; }
     void  setVelocityY(float vel)  { m_yVelocity = vel; }
     void  setFacing(Direction dir) { m_direction = dir; }
     void  startDig()               { m_digging = true; }
     void  stopDig()                { m_digging = false; }
     void  shiftY(float dy)         { m_yPos += dy; }
+    void  setAlive(bool alive)     { m_alive = alive; }
 
 
-    float getPosX()          const { return m_xPos; }
-    float getPosY()          const { return m_yPos; }
-    bool isOnGround()        const { return m_onGround; }
-    Direction getDirection() const { return m_direction; }
-    bool isDigging()         const { return m_digging; }
+    float getPosX()             const { return m_xPos; }
+    float getPosY()             const { return m_yPos; }
+    bool  isOnGround()          const { return m_onGround; }
+    Direction getDirection()    const { return m_direction; }
+    bool  isDigging()           const { return m_digging; }
+    bool  isAlive()             const { return m_alive; } 
 };
 
 #endif

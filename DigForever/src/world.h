@@ -49,11 +49,12 @@ public:
     static constexpr float  kSCROLL_LINE  { kCENTER_ROW * kTILE_SIZE };
 
     static constexpr int    kMIN_GROUP_TO_CLEAR { 4 }; // landing tiles kill groups of this size or larger
-
-private:
+    
     struct GridPos {
         int x; int y; 
     };
+    
+private:
 
     struct TileGroup {
         std::array<GridPos, kCOLS * kROWS> tiles {};
@@ -291,7 +292,9 @@ private:
         return row;
     }
 
-    bool updateFallingTile(FallingTile& fallingTile, float dt) {
+    bool updateFallingTile(FallingTile& fallingTile, float dt, int& landedRow) {
+        landedRow = -1;
+
         // wobble in place before dropping
         if (fallingTile.fallTimer < FallingTile::kTIME_BEFORE_FALL) {
             fallingTile.fallTimer += dt;
@@ -315,7 +318,7 @@ private:
             }
         }
  
-        const int landedRow = landTile(fallingTile);
+        landedRow = landTile(fallingTile);
         if (landedRow >= 0 && countMatchingGroup(fallingTile.col, landedRow) >= kMIN_GROUP_TO_CLEAR) {
             destroyGroup(fallingTile.col, landedRow);
         }
@@ -378,12 +381,18 @@ public:
         return true;
     }
 
-    void updateFallingTiles(float dt) {
+    // also returns grid coordinates of recently landed tiles
+    std::vector<GridPos> updateFallingTiles(float dt) {
         startFallingTiles();
- 
+        std::vector<GridPos> justLandedCoordinates {};
+
         for (std::size_t i = 0; i < m_fallingTiles.size();) {
-            const bool landed = updateFallingTile(m_fallingTiles[i], dt);
+            int landedRow = -1;
+            const bool landed = updateFallingTile(m_fallingTiles[i], dt, landedRow);
             if (landed) {
+                if (landedRow > -1) {
+                    justLandedCoordinates.push_back(GridPos{m_fallingTiles[i].col, landedRow});
+                }
                 m_fallingTiles[i] = m_fallingTiles.back();   // swap-and-pop removal
                 m_fallingTiles.pop_back();
             }
@@ -391,6 +400,8 @@ public:
                 ++i;
             }
         }
+
+        return justLandedCoordinates;
     }
 
     void buildOneRow() {

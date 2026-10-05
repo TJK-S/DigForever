@@ -12,34 +12,59 @@ private:
     Player m_player;    
     World  m_world;
     Input  m_input;
+
+    float  m_deathTimer { 0.f };
+    static constexpr float kMIN_DEAD_TIME { 5.f };
+
 public: 
     Game() : m_input{m_player} {}
     
     void update(float dt) {
-        m_input.handleInput();
+        if (m_player.isAlive()) {
+            m_input.handleInput();
+        } 
+        else {
+            m_deathTimer += dt;
+            
+            if (m_deathTimer >= kMIN_DEAD_TIME) {
+                const bool cleared = m_world.clearTilesForRespawn(
+                    World::worldToGridPosX(m_player.getPosX()), 
+                    World::worldToGridPosY(m_player.getPosY())
+                );
 
-        // test
-        if (::IsKeyDown(::KEY_K)) {
-            m_world.clearTilesForRespawn(
-                World::worldToGridPosX(m_player.getPosX()), 
-                World::worldToGridPosY(m_player.getPosY()));
+                m_player.setAlive(cleared);
+                m_deathTimer = (cleared) ? 0.f : m_deathTimer;
+            }
         }
 
         m_player.update(dt, m_world.getTiles());
-        m_world.updateFallingTiles(dt);
-        
+        const std::vector<World::GridPos> landedTiles = m_world.updateFallingTiles(dt);
+        for (const World::GridPos& pos : landedTiles) {
+            const bool playerSmushed = Player::hasIntersection(
+                m_player.getPosX(), m_player.getPosY(), 
+                Player::kX_SIZE, Player::kY_SIZE,
+                World::gridToWorldPosX(pos.x), World::gridToWorldPosY(pos.y), 
+                World::kTILE_SIZE, World::kTILE_SIZE
+            );
+
+            if (!playerSmushed) { continue; }
+            
+            m_player.setAlive(false);
+        }
+   
         const float overshoot = m_player.getPosY() + Player::kY_SIZE - World::kSCROLL_LINE;
         if (overshoot > 0.f) {
             m_world.shiftOffsetY(-overshoot);
             m_player.shiftY(-overshoot);
-
+            
             while (m_world.getOffsetY() <= -World::kTILE_SIZE) {
                 m_world.shiftOffsetY(static_cast<float>(World::kTILE_SIZE));
                 m_world.buildOneRow();
             }
         }
+        
 
-        if (!m_player.isDigging()) { return; }
+        if (!m_player.isDigging() || !m_player.isDigging()) { return; }
         
         int toRemoveX = World::worldToGridPosX(m_player.getPosX());
         int toRemoveY = World::worldToGridPosY(m_player.getPosY());
