@@ -69,12 +69,12 @@ public:
         int toRemoveX = World::worldToGridPosX(m_player.getPosX());
         int toRemoveY = World::worldToGridPosY(m_player.getPosY());
         
-        const Direction facing = m_player.getDirection();
+        const Player::Direction facing = m_player.getDirection();
         switch (facing) {
-            case Direction::Up:    toRemoveY -= 1; break;
-            case Direction::Down:  toRemoveY += 1; break;
-            case Direction::Left:  toRemoveX -= 1; break;
-            case Direction::Right: toRemoveX += 1; break;
+            case Player::Direction::Up:    toRemoveY -= 1; break;
+            case Player::Direction::Down:  toRemoveY += 1; break;
+            case Player::Direction::Left:  toRemoveX -= 1; break;
+            case Player::Direction::Right: toRemoveX += 1; break;
         }
 
         if (!World::inGridBounds(toRemoveX, toRemoveY)) {
