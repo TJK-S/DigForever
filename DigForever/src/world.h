@@ -37,6 +37,8 @@ struct FallingTile {
 
 class World {
 public:
+    struct GridPos { int x; int y; };
+
     static constexpr int    kCOLS         { 7 };
     static constexpr int    kROWS         { 15 };
     static constexpr int    kTILE_SIZE    { 32 };
@@ -47,10 +49,14 @@ public:
     static constexpr int    kCENTER_ROW   { 9 };
     static constexpr float  kSCROLL_LINE  { kCENTER_ROW * kTILE_SIZE };
 
+private:
     static constexpr int    kMIN_GROUP_TO_CLEAR { 4 }; // landing tiles kill groups of this size or larger
+    static constexpr int    kNUM_HITS_TOUGH  { 5 };
+    static constexpr int    kNUM_HITS_NORMAL { 1 };
 
-    struct GridPos { int x; int y; };
-    
+    static constexpr int    kROWS_PER_SECTION   { 100 };
+    static constexpr int    kROWS_BELOW_PLAYER { kROWS - 1 - kCENTER_ROW };
+
 private:
     struct TileGroup {
         std::array<GridPos, kCOLS * kROWS> tiles {};
@@ -65,68 +71,70 @@ private:
     std::uniform_int_distribution<int> m_tileDistr { 
         1, static_cast<int>(TileType::NUM_TILES) - 1}; // not including 0 which is the empty tile
 
-    int m_scoreThisFrame { 0 };
-    int m_depth { 0 }; // will say meters but can really be anything I want
-
+    int m_scoreThisFrame   { 0 };
+    int m_depth            { 0 }; // will say meters but can really be anything I want
+    int m_bottomRowDepth   { kROWS_BELOW_PLAYER }; 
+        
 private:
     // grid generation logic ------------------------------
 
-    Tile makeRandomTile();
-    void generateInitialGrid();
+    [[nodiscard]] Tile makeRandomTile() noexcept;
+    void generateInitialGrid() noexcept;
+    void clearGrid() noexcept;
 
     // group logic ----------------------------------------
 
-    TileGroup findGroup (int col, int row) const;
-    int  countMatchingGroup(int col, int row) const;
-    void destroyGroup(int col, int row);
+    [[nodiscard]] TileGroup findGroup (int col, int row) const noexcept;
+    [[nodiscard]] int countMatchingGroup(int col, int row) const noexcept;
+    void destroyGroup(int col, int row) noexcept;
 
     // floating logic -------------------------------------
 
-    bool isReserved(int col, int row) const;
-    bool isSupportedFromBelow(int col, int row, TileType groupType) const;
-    bool groupIsFloating(int col, int row) const;
+    [[nodiscard]] bool isReserved(int col, int row) const noexcept;
+    [[nodiscard]] bool isSupportedFromBelow(int col, int row, TileType groupType) const noexcept;
+    [[nodiscard]] bool groupIsFloating(int col, int row) const noexcept;
 
     // falling logic --------------------------------------
 
-    int  findLandingRow(int col, int row) const;
+    [[nodiscard]] int  findLandingRow(int col, int row) const noexcept;
+    [[nodiscard]] int  landTile(const FallingTile& fallingTile) noexcept; // returns the row it landed in
+    [[nodiscard]] bool targetIsUnsupported(const FallingTile& fallingTile) noexcept;
+    [[nodiscard]] bool updateFallingTile(FallingTile& fallingTile, float dt, int& landedRow) noexcept;
     void startFallingTiles();
-    bool targetIsUnsupported(const FallingTile& fallingTile);
-    int  landTile(const FallingTile& fallingTile); // returns the row it landed in
-    bool updateFallingTile(FallingTile& fallingTile, float dt, int& landedRow);
 
     // score calculation ----------------------------------
 
-    void updateScore(int numDestroyedTile);
+    void updateScore(int numDestroyedTile) noexcept;
 
 public:
     // static ---------------------------------------------
 
-    static float gridToWorldPosX(int col);
-    static float gridToWorldPosY(int row);
-    static int   worldToGridPosX(float col);
-    static int   worldToGridPosY(float row);
-    static float fallingTileWorldPosY(const FallingTile& fallingTile);
-    static bool  inGridBounds(int col, int row);
-    static void  shiftOffsetY(float dy);
-    static float getOffsetY();
+    [[nodiscard]] static float gridToWorldPosX(int col) noexcept;
+    [[nodiscard]] static float gridToWorldPosY(int row) noexcept;
+    [[nodiscard]] static int   worldToGridPosX(float x) noexcept;
+    [[nodiscard]] static int   worldToGridPosY(float y) noexcept;
+    [[nodiscard]] static float fallingTileWorldPosY(const FallingTile& fallingTile) noexcept;
+    [[nodiscard]] static bool  inGridBounds(int col, int row) noexcept;
+    [[nodiscard]] static float getOffsetY() noexcept;
+    
+    static void  shiftOffsetY(float dy) noexcept;
 
     // exposed for game -----------------------------------
 
-    std::vector<GridPos> updateFallingTiles(float dt); // returns vector of grid coordinates of recently landed tiles
-    bool hitTile(int col, int row);
-    bool clearTilesForRespawn(int col, int row);
+    [[nodiscard]] std::vector<GridPos> updateFallingTiles(float dt); // returns vector of grid coordinates of recently landed tiles
+    [[nodiscard]] bool clearTilesForRespawn(int col, int row) noexcept;
+    bool hitTile(int col, int row) noexcept;
     void buildOneRow();
 
     // getters / setters ----------------------------------
 
-    void increaseDepth();
-    void setTile(int x, int y, Tile type);
+    void setTile(int col, int row, Tile type) noexcept;
 
-    const Tile& getTile(int x, int y) const;
-    const std::array<std::array<Tile, kCOLS>, kROWS>& getTiles() const;
-    const std::vector<FallingTile>& getFallingTiles() const;
-   [[nodiscard]] int getScoreThisFrame(); 
-   int getDepth() const;
+    [[nodiscard]] const Tile& getTile(int col, int row) const noexcept;
+    [[nodiscard]] const std::array<std::array<Tile, kCOLS>, kROWS>& getTiles() const noexcept;
+    [[nodiscard]] const std::vector<FallingTile>& getFallingTiles() const noexcept;
+    [[nodiscard]] int getScoreThisFrame() noexcept; 
+    [[nodiscard]] int getDepth() const noexcept;
 
     // class ----------------------------------------------
 
