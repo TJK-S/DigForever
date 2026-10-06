@@ -36,6 +36,8 @@ int main() {
         ::ClearBackground(::GRAY);
         renderer.renderWorld();
         renderer.renderPlayer();
+        renderer.renderUI();
+        
         ::EndTextureMode();
 
         const float screenW = static_cast<float>(::GetScreenWidth());

@@ -17,6 +17,9 @@ private:
     static constexpr float kMIN_DEAD_TIME { 5.f };
 
 public: 
+    int score { 0 };
+
+public:
     Game() : m_input{m_player} {}
     
     void update(float dt) {
@@ -38,7 +41,7 @@ public:
         }
 
         m_player.update(dt, m_world);
-        const std::vector<World::GridPos> landedTiles = m_world.updateFallingTiles(dt);
+        const std::vector<World::GridPos> landedTiles = m_world.updateFallingTiles(dt);        
         for (const World::GridPos& pos : landedTiles) {
             const bool playerSmushed = Player::hasIntersection(
                 m_player.getPosX(), m_player.getPosY(), 
@@ -63,7 +66,7 @@ public:
             }
         }
         
-
+        score += m_world.getScoreThisFrame();
         if (!m_player.isDigging() || !m_player.isAlive()) { return; }
         
         int toRemoveX = World::worldToGridPosX(m_player.getPosX());

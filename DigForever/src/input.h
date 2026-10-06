@@ -21,8 +21,6 @@ public:
         const bool left  = ::IsKeyDown(KEY_A);
         const bool down  = ::IsKeyDown(KEY_S);
         const bool right = ::IsKeyDown(KEY_D);
-
-        const bool jump  = ::IsKeyDown(KEY_SPACE);
         const bool dig   = ::IsKeyDown(KEY_J);
 
         Player::Direction facing = { Player::Direction::Down };
@@ -35,10 +33,6 @@ public:
         if (!left && right) {
             m_player.setVelocityX(Player::kX_SPEED);
             facing = Player::Direction::Right;
-        }
-
-        if (jump && m_player.isOnGround()) {
-            m_player.setVelocityY(-Player::kY_SPEED);
         }
 
         if (up && !down) {

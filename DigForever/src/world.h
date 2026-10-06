@@ -44,7 +44,7 @@ public:
     static constexpr int    kWORLD_WIDTH  { kCOLS * kTILE_SIZE };
     static constexpr int    kWORLD_HEIGHT { kROWS * kTILE_SIZE };
 
-    static constexpr int    kCENTER_ROW   { 7 };
+    static constexpr int    kCENTER_ROW   { 9 };
     static constexpr float  kSCROLL_LINE  { kCENTER_ROW * kTILE_SIZE };
 
     static constexpr int    kMIN_GROUP_TO_CLEAR { 4 }; // landing tiles kill groups of this size or larger
@@ -65,6 +65,9 @@ private:
     std::uniform_int_distribution<int> m_tileDistr { 
         1, static_cast<int>(TileType::NUM_TILES) - 1}; // not including 0 which is the empty tile
 
+    int m_scoreThisFrame { 0 };
+    int m_depth { 0 }; // will say meters but can really be anything I want
+
 private:
     // grid generation logic ------------------------------
 
@@ -75,7 +78,7 @@ private:
 
     TileGroup findGroup (int col, int row) const;
     int  countMatchingGroup(int col, int row) const;
-    void destroyGroup(int x, int y);
+    void destroyGroup(int col, int row);
 
     // floating logic -------------------------------------
 
@@ -90,6 +93,10 @@ private:
     bool targetIsUnsupported(const FallingTile& fallingTile);
     int  landTile(const FallingTile& fallingTile); // returns the row it landed in
     bool updateFallingTile(FallingTile& fallingTile, float dt, int& landedRow);
+
+    // score calculation ----------------------------------
+
+    void updateScore(int numDestroyedTile);
 
 public:
     // static ---------------------------------------------
@@ -106,18 +113,21 @@ public:
     // exposed for game -----------------------------------
 
     std::vector<GridPos> updateFallingTiles(float dt); // returns vector of grid coordinates of recently landed tiles
-    bool hitTile(int x, int y);
+    bool hitTile(int col, int row);
     bool clearTilesForRespawn(int col, int row);
     void buildOneRow();
 
     // getters / setters ----------------------------------
 
+    void increaseDepth();
     void setTile(int x, int y, Tile type);
 
     const Tile& getTile(int x, int y) const;
     const std::array<std::array<Tile, kCOLS>, kROWS>& getTiles() const;
     const std::vector<FallingTile>& getFallingTiles() const;
-    
+   [[nodiscard]] int getScoreThisFrame(); 
+   int getDepth() const;
+
     // class ----------------------------------------------
 
     World();

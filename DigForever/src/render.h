@@ -31,13 +31,13 @@ public:
     static constexpr int kVIRTUAL_SCREEN_HEIGHT { 360 };
 
 private:
-    static constexpr int kX_OFFSET { 
-        kVIRTUAL_SCREEN_WIDTH / 2 - (World::kCOLS * World::kTILE_SIZE) /2 };
-
-    static constexpr int kY_OFFSET {
-        -World::kTILE_SIZE * 3};
-
+    static constexpr int kX_WORLD_OFFSET     { kVIRTUAL_SCREEN_WIDTH / 2 - (World::kCOLS * World::kTILE_SIZE) / 2 };
+    static constexpr int kY_WORLD_OFFSET     { -World::kTILE_SIZE * 3 };
+    static constexpr int kWORLD_BORDER_LEFT  { kX_WORLD_OFFSET + (World::kCOLS * World::kTILE_SIZE)};
+    static constexpr int kWORLD_BORDER_RIGHT { kX_WORLD_OFFSET };
+    
     const Game& m_game;
+
 public:
     Renderer(const Game& game) : m_game(game) {}
 
@@ -52,7 +52,7 @@ public:
                 const Tile& tile = world.getTile(col, row);
                 if (tile.type == TileType::TILE_EMPTY) {
                     ::DrawRectangle(
-                        kX_OFFSET + xPos, kY_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
+                        kX_WORLD_OFFSET + xPos, kY_WORLD_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
                         World::kTILE_SIZE, World::kTILE_SIZE, ::WHITE);
                     
                     continue;
@@ -60,7 +60,7 @@ public:
 
                 ::DrawTexture(
                     getTexture2DFromTile(tile.type), 
-                    kX_OFFSET + xPos, kY_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
+                    kX_WORLD_OFFSET + xPos, kY_WORLD_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
                     ::WHITE
                 );
             }
@@ -78,8 +78,8 @@ public:
 
             ::DrawTexture(
                 getTexture2DFromTile(fallingTile.tile.type),
-                wobbleX + kX_OFFSET + fallingTile.col * World::kTILE_SIZE,
-                kY_OFFSET + static_cast<int>(world.fallingTileWorldPosY(fallingTile)),
+                wobbleX + kX_WORLD_OFFSET + fallingTile.col * World::kTILE_SIZE,
+                kY_WORLD_OFFSET + static_cast<int>(world.fallingTileWorldPosY(fallingTile)),
                 ::WHITE
             );
         }
@@ -89,11 +89,23 @@ public:
         const Player& player = m_game.getPlayer();
 
         ::DrawRectangle(
-            kX_OFFSET + static_cast<int>(player.getPosX()),
-            kY_OFFSET + static_cast<int>(player.getPosY()),
+            kX_WORLD_OFFSET + static_cast<int>(player.getPosX()),
+            kY_WORLD_OFFSET + static_cast<int>(player.getPosY()),
             static_cast<int>(Player::kX_SIZE), 
             static_cast<int>(Player::kY_SIZE),
             ::MAGENTA
+        );
+    }
+
+    void renderUI() {
+        ::DrawText(
+            ::TextFormat("Score: %d", m_game.score),
+            kWORLD_BORDER_LEFT + 10, 20, 26, ::GREEN
+        );
+
+        ::DrawText(
+            ::TextFormat("Depth: %d", m_game.getWorld().getDepth()),
+            kWORLD_BORDER_LEFT + 10, 60, 26, ::GREEN
         );
     }
 };

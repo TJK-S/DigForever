@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 
+
 // ========================================================
 // grid generation
 // ========================================================
@@ -91,10 +92,12 @@ int World::countMatchingGroup(int col, int row) const {
 
 void World::destroyGroup(int col, int row) {
     const TileGroup group = findGroup(col, row);
-    for (int i = 0; i <group.count; ++i) {
+    for (int i = 0; i < group.count; ++i) {
         const GridPos& tile = group.tiles[i];
-        m_grid[tile.y][tile.x] = Tile {}; 
+        m_grid[tile.y][tile.x] = Tile{}; 
     }
+
+    updateScore(group.count);
 }
 
 // ========================================================
@@ -233,11 +236,22 @@ bool World::updateFallingTile(FallingTile& fallingTile, float dt, int& landedRow
     }
 
     landedRow = landTile(fallingTile);
-    if (landedRow >= 0 && countMatchingGroup(fallingTile.col, landedRow) >= kMIN_GROUP_TO_CLEAR) {
-        destroyGroup(fallingTile.col, landedRow);
+    const int groupSize = countMatchingGroup(fallingTile.col, landedRow);
+    if (landedRow >= 0 && groupSize >= kMIN_GROUP_TO_CLEAR) {
+        destroyGroup(fallingTile.col, landedRow); // adds 1^multiplier to score
+        updateScore(groupSize * 2);               // additional 2^multiplier to score
     }
 
     return true;
+}
+
+// ========================================================
+// Score calculation
+// ========================================================
+
+void World::updateScore(int numDestroyedTile) {
+    m_scoreThisFrame += static_cast<int>(
+        std::powf(static_cast<float>(numDestroyedTile), 1.25f)) * 10;
 }
 
 // ========================================================
@@ -303,14 +317,14 @@ std::vector<World::GridPos> World::updateFallingTiles(float dt) {
     return justLandedCoordinates;
 }
 
-bool World::hitTile(int x, int y) {
-    assert(inGridBounds(x, y));
-    Tile& tile = m_grid[y][x];
+bool World::hitTile(int col, int row) {
+    assert(inGridBounds(col, row));
+    Tile& tile = m_grid[row][col];
     if (tile.type == TileType::TILE_EMPTY || --tile.numHits > 0) {
         return false;
     }
 
-    destroyGroup(x, y);
+    destroyGroup(col, row);
     return true;
 }
 
@@ -331,6 +345,8 @@ bool World::clearTilesForRespawn(int col, int row) {
 }
 
 void World::buildOneRow() {
+    ++m_depth;
+
     // replace every row with the row beneath it. skipping the last row
     for (int row = 0; row < kROWS - 1; ++row) {
         m_grid[row] = m_grid[row + 1];
@@ -374,6 +390,19 @@ const std::array<std::array<Tile, World::kCOLS>, World::kROWS>& World::getTiles(
 const std::vector<FallingTile>& World::getFallingTiles() const {
     return m_fallingTiles;
 }
+
+int World::getScoreThisFrame() {
+    const int toReturn = m_scoreThisFrame;
+    m_scoreThisFrame = 0;
+
+    return toReturn;
+}
+
+int World::getDepth() const {
+    return m_depth;
+}
+
+// class
 
 World::World() {
     generateInitialGrid();
