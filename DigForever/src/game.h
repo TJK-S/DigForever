@@ -41,6 +41,13 @@ public:
         }
 
         m_player.update(dt, m_world);
+        if (m_player.pickedUpHealth()) {
+            const int gridPosX = World::worldToGridPosX(m_player.getPosX());
+            const int gridPosY = World::worldToGridPosY(m_player.getPosY());
+
+            m_world.setTile(gridPosX, gridPosY, Tile{});
+        }
+
         const std::vector<World::GridPos> landedTiles = m_world.updateFallingTiles(dt);        
         for (const World::GridPos& pos : landedTiles) {
             const bool playerSmushed = Player::hasIntersection(

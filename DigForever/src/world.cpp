@@ -13,7 +13,9 @@ Tile World::makeRandomTile() noexcept {
     const TileType type = static_cast<TileType>(randDistrNum);
     const int numHits = 
         (randDistrNum < static_cast<int>(TileType::TILE_TOUGH)) 
-        ? kNUM_HITS_NORMAL : kNUM_HITS_TOUGH;
+        ? kNUM_HITS_NORMAL : 
+        (randDistrNum < static_cast<int>(TileType::TILE_HEALTH))
+        ? kNUM_HITS_TOUGH : kNUM_HITS_HEALTH;
         
     return Tile{ type, numHits };   
 }

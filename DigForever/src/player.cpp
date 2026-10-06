@@ -12,7 +12,7 @@ void Player::applyGravity(float dt) {
     m_yVelocity += kGRAVITY * dt;
 }
 
-bool Player::collidesAt(float x, float y, const World& world) const {
+bool Player::collidesAt(float x, float y, const World& world) {
     // the right/bottom edges are exclusive, so step just inside them
     constexpr float kEdge = 0.01f;
 
@@ -24,8 +24,16 @@ bool Player::collidesAt(float x, float y, const World& world) const {
     for (int row = topRow; row <= bottomRow; ++row) {
         for (int col = leftCol; col <= rightCol; ++col) {
             if (!World::inGridBounds(col, row)) { continue; }
+            
+            const TileType type = world.getTile(col, row).type;
 
-            if (world.getTile(col, row).type != TileType::TILE_EMPTY) {
+            if (type == TileType::TILE_HEALTH) {
+                m_health = std::min(m_health + kPICKUP_HEALTH_AMT, kMAX_HEALTH);
+                m_pickedUpHealth = true;
+                continue;
+            }
+
+            if (type != TileType::TILE_EMPTY) {
                 return true;
             }
         }
@@ -87,6 +95,7 @@ Player::Player()
 {}
 
 void Player::update(float dt, const World& world) {        
+    m_health -= kHEALTH_DECAY_PER_SECOND * dt;
     applyGravity(dt);
 
     moveX(m_xVelocity * dt, world);
@@ -113,7 +122,14 @@ bool Player::hasIntersection(
 
     float Player::getPosX()             const { return m_xPos; }
     float Player::getPosY()             const { return m_yPos; }
+    float Player::getHealth()           const { return m_health; }
     bool  Player::isOnGround()          const { return m_onGround; }
     bool  Player::isDigging()           const { return m_digging; }
     bool  Player::isAlive()             const { return m_alive; } 
+    bool  Player::pickedUpHealth() {
+        const bool result = m_pickedUpHealth; 
+        m_pickedUpHealth = false;
+        return result; 
+    }
+
     Player::Direction Player::getDirection()    const { return m_direction; }

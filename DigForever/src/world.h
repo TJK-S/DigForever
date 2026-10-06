@@ -14,7 +14,9 @@ enum class TileType {
     TILE_BLUE,
     TILE_YELLOW,
 
-    TILE_TOUGH, // must always be the tile before the NUM_TILES for underlying type comparisons
+    // keep ordering of these last three
+    TILE_TOUGH,  
+    TILE_HEALTH,
     NUM_TILES
 };
 
@@ -53,6 +55,7 @@ private:
     static constexpr int    kMIN_GROUP_TO_CLEAR { 4 }; // landing tiles kill groups of this size or larger
     static constexpr int    kNUM_HITS_TOUGH  { 5 };
     static constexpr int    kNUM_HITS_NORMAL { 1 };
+    static constexpr int    kNUM_HITS_HEALTH { INT_MAX }; // unbreakable
 
     static constexpr int    kROWS_PER_SECTION   { 100 };
     static constexpr int    kROWS_BELOW_PLAYER { kROWS - 1 - kCENTER_ROW };

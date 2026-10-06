@@ -18,7 +18,8 @@ namespace {
             { TileType::TILE_GREEN,  ::LoadTexture(::TextFormat("%sGreen.png",  assetPath)) },
             { TileType::TILE_BLUE,   ::LoadTexture(::TextFormat("%sBlue.png",   assetPath)) },
             { TileType::TILE_YELLOW, ::LoadTexture(::TextFormat("%sYellow.png", assetPath)) },
-            { TileType::TILE_TOUGH,  ::LoadTexture(::TextFormat("%sTough.png",  assetPath)) }
+            { TileType::TILE_TOUGH,  ::LoadTexture(::TextFormat("%sTough.png",  assetPath)) },
+            { TileType::TILE_HEALTH, ::LoadTexture(::TextFormat("%sHealth.png", assetPath)) }
         };
 
         return tileTextures.at(tile);
@@ -98,15 +99,27 @@ public:
     }
 
     void renderUI() {
+        constexpr int kPaddingX { 10 };
+        constexpr int kPaddingY { 20 };
+        constexpr int kSpacingY { 40 };
+        constexpr int kFontSIze { 26 };
+        constexpr ::Color kTextColor { ::GREEN }; 
+
         ::DrawText(
             ::TextFormat("Score: %d", m_game.score),
-            kWORLD_BORDER_LEFT + 10, 20, 26, ::GREEN
+            kWORLD_BORDER_LEFT + kPaddingX, kPaddingY, kFontSIze, kTextColor
         );
 
         ::DrawText(
             ::TextFormat("Depth: %d", m_game.getWorld().getDepth()),
-            kWORLD_BORDER_LEFT + 10, 60, 26, ::GREEN
+            kWORLD_BORDER_LEFT + kPaddingX, kPaddingY + kSpacingY * 1, kFontSIze, kTextColor
         );
+
+        ::DrawText(
+            ::TextFormat("Health: %.0f", m_game.getPlayer().getHealth()),
+            kWORLD_BORDER_LEFT + kPaddingX, kPaddingY + kSpacingY * 2, kFontSIze, kTextColor
+        );
+        
     }
 };
 
