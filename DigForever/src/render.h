@@ -6,6 +6,7 @@
 #include <raylib.h>
 #include <array>
 #include "game.h"
+#include "title.h"
 
 class Renderer {
 public:
@@ -35,6 +36,7 @@ public:
     void renderWorld() noexcept;
     void renderPlayer() noexcept;
     void renderUI() noexcept;
+    void renderTitle(const TitleScreen& title) noexcept;
 };
 
 #endif

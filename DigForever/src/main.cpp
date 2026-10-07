@@ -6,6 +6,9 @@
 
 #include "game.h"
 #include "render.h"
+#include "title.h"
+
+enum class GameState { Title, Playing };
 
 int main() {
     ::SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -26,18 +29,35 @@ int main() {
     {
         Game game;
         Renderer renderer { game };
+        TitleScreen title;
+        GameState screen { GameState::Title };
 
         while (!::WindowShouldClose()) {
             // update
-            game.update(::GetFrameTime());
+            switch (screen) {
+                case GameState::Title:
+                    title.update(::GetFrameTime());
+                    if (title.startRequested()) { screen = GameState::Playing; }
+                    break;
+                case GameState::Playing:
+                    game.update(::GetFrameTime());
+                    break;
+            }
             
             // Draw
 
             ::BeginTextureMode(target);
             ::ClearBackground(::GRAY);
-            renderer.renderWorld();
-            renderer.renderPlayer();
-            renderer.renderUI();
+            switch (screen) {
+                case GameState::Title:
+                    renderer.renderTitle(title);
+                    break;
+                case GameState::Playing:
+                    renderer.renderWorld();
+                    renderer.renderPlayer();
+                    renderer.renderUI();
+                    break;
+            }
             
             ::EndTextureMode();
 

@@ -2,6 +2,8 @@
 
 #include "render.h"
 
+#include <cmath>
+
 Renderer::Renderer(const Game& game) : m_game(game) {
     const auto load = [this](TileType type, const char* name) {
         m_tileTextures[static_cast<int>(type) - 1] =
@@ -111,4 +113,46 @@ void Renderer::renderUI() noexcept {
         kWORLD_BORDER_RIGHT + kPaddingX, kPaddingY + kSpacingY * 2, kFontSize, kTextColor
     );
     
+}
+void Renderer::renderTitle(const TitleScreen& title) noexcept {
+    // draw randomized tiles
+    constexpr ::Color kBackgroundTint { 90, 90, 90, 255 };
+    const int scroll = static_cast<int>(title.getScrollOffset());
+
+    for (int row = 0; row < TitleScreen::kBG_ROWS; ++row) {
+        for (int col = 0; col < TitleScreen::kBG_COLS; ++col) {
+            ::DrawTexture(
+                getTexture2DFromTile(title.getBackgroundTile(col, row)),
+                col * World::kTILE_SIZE, 
+                row * World::kTILE_SIZE - scroll,
+                kBackgroundTint
+            );
+        }
+    }
+
+    // darken area behind the text
+    constexpr int kRectY      { 60 };
+    constexpr int kRectHeight { 240 };
+    ::DrawRectangle(
+        0, kRectY, 
+        kVIRTUAL_SCREEN_WIDTH, 
+        kRectHeight, 
+        ::Fade(::BLACK, 0.6f));
+
+    const auto drawCentered = [](const char* text, int y, int fontSize, ::Color color) {
+        const int width = ::MeasureText(text, fontSize);
+        ::DrawText(
+            text, (kVIRTUAL_SCREEN_WIDTH - width) / 2, 
+            y, fontSize, color);
+    };
+
+    constexpr const char* kTitle     { "DIG FOREVER" };
+    constexpr int   kTitleFontSize   { 64 };
+    constexpr int   kTitleY          { 80 };
+    constexpr int   kShadowOffset    { 4 };
+
+    drawCentered(kTitle, kTitleY + kShadowOffset, kTitleFontSize, ::DARKBROWN);
+    drawCentered(kTitle, kTitleY, kTitleFontSize, ::GOLD);
+    drawCentered("PRESS ENTER TO START", kTitleY + 120, 24, ::GREEN);
+    drawCentered("WASD: Move / Aim    J: Dig    Esc: Quit", kTitleY + 180, 16, ::LIGHTGRAY);
 }
