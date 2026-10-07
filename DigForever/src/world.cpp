@@ -399,6 +399,31 @@ void World::buildOneRow() {
     }
 }
 
+int World::collectHealthTiles(float x, float y, float w, float h) noexcept {
+    // repeated logic from Player::collidesAt(float x, float y, float w, float h)
+
+    constexpr float kEdge = 0.01f;
+
+    const int leftCol   = worldToGridPosX(x);
+    const int rightCol  = worldToGridPosX(x + w - kEdge);
+    const int topRow    = worldToGridPosY(y);
+    const int bottomRow = worldToGridPosY(y + h - kEdge);
+
+    int collected = 0;
+    for (int row = topRow; row <= bottomRow; ++row) {
+        for (int col = leftCol; col <= rightCol; ++col) {
+            if (!inGridBounds(col, row)) { continue; }
+
+            if (m_grid[row][col].type == TileType::TILE_HEALTH) {
+                m_grid[row][col] = Tile{};
+                ++collected;
+            }
+        }
+    }
+
+    return collected;
+}
+
 // ========================================================
 // getters / setters
 // ========================================================

@@ -12,7 +12,7 @@ void Player::applyGravity(float dt) {
     m_yVelocity += kGRAVITY * dt;
 }
 
-bool Player::collidesAt(float x, float y, const World& world) {
+bool Player::collidesAt(float x, float y, const World& world) const {
     // the right/bottom edges are exclusive, so step just inside them
     constexpr float kEdge = 0.01f;
 
@@ -27,13 +27,7 @@ bool Player::collidesAt(float x, float y, const World& world) {
             
             const TileType type = world.getTile(col, row).type;
 
-            if (type == TileType::TILE_HEALTH) {
-                m_health = std::min(m_health + kPICKUP_HEALTH_AMT, kMAX_HEALTH);
-                m_pickedUpHealth = true;
-                continue;
-            }
-
-            if (type != TileType::TILE_EMPTY) {
+            if (type != TileType::TILE_EMPTY && type != TileType::TILE_HEALTH) {
                 return true;
             }
         }
@@ -118,7 +112,12 @@ bool Player::hasIntersection(
     void  Player::stopDig()                { m_digging = false; }
     void  Player::shiftY(float dy)         { m_yPos += dy; }
     void  Player::setAlive(bool alive)     { m_alive = alive; }
-
+    void  Player::collectHealth(int numPickups) { 
+        m_health = std::min(
+            m_health + kPICKUP_HEALTH_AMT * static_cast<float>(numPickups), 
+            kMAX_HEALTH
+        );
+    }
 
     float Player::getPosX()             const { return m_xPos; }
     float Player::getPosY()             const { return m_yPos; }
@@ -126,10 +125,6 @@ bool Player::hasIntersection(
     bool  Player::isOnGround()          const { return m_onGround; }
     bool  Player::isDigging()           const { return m_digging; }
     bool  Player::isAlive()             const { return m_alive; } 
-    bool  Player::pickedUpHealth() {
-        const bool result = m_pickedUpHealth; 
-        m_pickedUpHealth = false;
-        return result; 
-    }
+
 
     Player::Direction Player::getDirection()    const { return m_direction; }

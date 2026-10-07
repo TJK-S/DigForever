@@ -129,6 +129,8 @@ public:
     bool hitTile(int col, int row) noexcept;
     void buildOneRow();
 
+    [[nodiscard]] int collectHealthTiles(float x, float y, float w, float h) noexcept;
+
     // getters / setters ----------------------------------
 
     void setTile(int col, int row, Tile type) noexcept;

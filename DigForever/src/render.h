@@ -43,6 +43,8 @@ public:
     Renderer(const Game& game) : m_game(game) {}
 
     void renderWorld() {
+        constexpr ::Color kBackgroundColor { ::WHITE };
+
         const World& world = m_game.getWorld();
 
         for (int col = 0; col < World::kCOLS; ++col) {
@@ -51,18 +53,19 @@ public:
                 const int yPos = row * World::kTILE_SIZE;
 
                 const Tile& tile = world.getTile(col, row);
-                if (tile.type == TileType::TILE_EMPTY) {
-                    ::DrawRectangle(
-                        kX_WORLD_OFFSET + xPos, kY_WORLD_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
-                        World::kTILE_SIZE, World::kTILE_SIZE, ::WHITE);
+
+                ::DrawRectangle(
+                    kX_WORLD_OFFSET + xPos, kY_WORLD_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
+                    World::kTILE_SIZE, World::kTILE_SIZE, kBackgroundColor);
                     
+                if (tile.type == TileType::TILE_EMPTY) {                    
                     continue;
                 }
 
                 ::DrawTexture(
                     getTexture2DFromTile(tile.type), 
                     kX_WORLD_OFFSET + xPos, kY_WORLD_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
-                    ::WHITE
+                    kBackgroundColor
                 );
             }
         }
@@ -77,11 +80,13 @@ public:
             const int wobbleX = (timer >= 0.5f && timer < FallingTile::kTIME_BEFORE_FALL)
                               ? kWobblePattern[step] : 0;
 
+            const int fallingTileY = static_cast<int>(world.fallingTileWorldPosY(fallingTile));
+
             ::DrawTexture(
                 getTexture2DFromTile(fallingTile.tile.type),
                 wobbleX + kX_WORLD_OFFSET + fallingTile.col * World::kTILE_SIZE,
-                kY_WORLD_OFFSET + static_cast<int>(world.fallingTileWorldPosY(fallingTile)),
-                ::WHITE
+                kY_WORLD_OFFSET + fallingTileY,
+                kBackgroundColor
             );
         }
     }

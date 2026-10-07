@@ -41,11 +41,11 @@ public:
         }
 
         m_player.update(dt, m_world);
-        if (m_player.pickedUpHealth()) {
-            const int gridPosX = World::worldToGridPosX(m_player.getPosX());
-            const int gridPosY = World::worldToGridPosY(m_player.getPosY());
-
-            m_world.setTile(gridPosX, gridPosY, Tile{});
+        const int healthCollected = m_world.collectHealthTiles(
+            m_player.getPosX(), m_player.getPosY(), Player::kX_SIZE, Player::kY_SIZE
+        );
+        if (healthCollected > 0) {
+            m_player.collectHealth(healthCollected);
         }
 
         const std::vector<World::GridPos> landedTiles = m_world.updateFallingTiles(dt);        

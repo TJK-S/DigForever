@@ -16,13 +16,12 @@ public:
     static constexpr float kY_SPEED { 530.f };
     static constexpr float kGRAVITY { 1700.f };
 
-    
     enum class Direction { Up, Down, Left, Right };
     
 private:
-    static constexpr float kMAX_HEALTH { 100.f };
-    static constexpr float kPICKUP_HEALTH_AMT { 10.f };
-    static constexpr float kHEALTH_DECAY_PER_SECOND { 5.f };
+    static constexpr float kMAX_HEALTH { 20.f };
+    static constexpr float kPICKUP_HEALTH_AMT { 5.f };
+    static constexpr float kHEALTH_DECAY_PER_SECOND { 1.f };
 
 private:
     float m_xPos;
@@ -34,7 +33,6 @@ private:
     float m_yRemainder    { 0.f };
 
     float m_health        { kMAX_HEALTH };
-    bool m_pickedUpHealth { false }; 
     bool m_onGround       { false };
     bool m_digging        { false };
     bool m_alive          { true };
@@ -45,7 +43,7 @@ private:
     // physics --------------------------------------------
 
     void applyGravity(float dt);
-    bool collidesAt(float x, float y, const World& world);
+    bool collidesAt(float x, float y, const World& world) const;
     void moveX(float amount, const World& world);
     void moveY(float amount, const World& world);
 
@@ -67,6 +65,7 @@ public:
     void  stopDig();
     void  shiftY(float dy);
     void  setAlive(bool alive);
+    void  collectHealth(int numPickups);
 
     float getPosX()             const;
     float getPosY()             const;
@@ -74,7 +73,6 @@ public:
     bool  isOnGround()          const;
     bool  isDigging()           const;
     bool  isAlive()             const;
-    [[nodiscard]] bool  pickedUpHealth();
     Direction getDirection()    const;
 };
 
