@@ -32,6 +32,10 @@ void Game::update(float dt) {
 
     const std::vector<World::GridPos> landedTiles = m_world.updateFallingTiles(dt);        
     for (const World::GridPos& pos : landedTiles) {
+        if (m_world.getTile(pos.x, pos.y).type == TileType::TILE_HEALTH) {
+            continue;
+        }
+
         const bool playerSmushed = Player::hasIntersection(
             m_player.getPosX(), m_player.getPosY(), 
             Player::kX_SIZE, Player::kY_SIZE,
