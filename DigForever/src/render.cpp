@@ -97,7 +97,7 @@ void Renderer::renderUI() noexcept {
     constexpr ::Color kTextColor { ::GREEN }; 
 
     ::DrawText(
-        ::TextFormat("Score: %d", m_game.score),
+        ::TextFormat("Score: %d", m_game.getScore()),
         kWORLD_BORDER_RIGHT + kPaddingX, kPaddingY, kFontSize, kTextColor
     );
 
