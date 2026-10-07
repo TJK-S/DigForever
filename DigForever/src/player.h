@@ -42,38 +42,39 @@ private:
 private:
     // physics --------------------------------------------
 
-    void applyGravity(float dt);
-    bool collidesAt(float x, float y, const World& world) const;
-    void moveX(float amount, const World& world);
-    void moveY(float amount, const World& world);
+    [[nodiscard]] bool collidesAt(float x, float y, const World& world) const noexcept;
+    void moveX(float amount, const World& world) noexcept;
+    void moveY(float amount, const World& world) noexcept;
+    void applyGravity(float dt) noexcept;
 
 public:
-    Player();
+    Player() noexcept;
 
-    void update(float dt, const World& world);
+    void update(float dt, const World& world) noexcept;
     
-    static bool hasIntersection(
+    [[nodiscard]] static bool hasIntersection(
         float x1, float y1, float w1, float h1,
-        float x2, float y2, float w2, float h2);
-
+        float x2, float y2, float w2, float h2
+    ) noexcept;
 
     // getters / setters ----------------------------------
-    void  setVelocityX(float vel);
-    void  setVelocityY(float vel);
-    void  setFacing(Direction dir);
-    void  startDig();
-    void  stopDig();
-    void  shiftY(float dy);
-    void  setAlive(bool alive);
-    void  collectHealth(int numPickups);
 
-    float getPosX()             const;
-    float getPosY()             const;
-    float getHealth()           const;
-    bool  isOnGround()          const;
-    bool  isDigging()           const;
-    bool  isAlive()             const;
-    Direction getDirection()    const;
+    void  setVelocityX(float vel) noexcept;
+    void  setVelocityY(float vel) noexcept;
+    void  setFacing(Direction dir) noexcept;
+    void  startDig() noexcept;
+    void  stopDig() noexcept;
+    void  shiftY(float dy) noexcept;
+    void  setAlive(bool alive) noexcept;
+    void  collectHealth(int numPickups) noexcept;
+
+    [[nodiscard]] float getPosX() const noexcept;
+    [[nodiscard]] float getPosY() const noexcept;
+    [[nodiscard]] float getHealth() const noexcept;
+    [[nodiscard]] bool  isOnGround() const noexcept;
+    [[nodiscard]] bool  isDigging() const noexcept;
+    [[nodiscard]] bool  isAlive() const noexcept;
+    [[nodiscard]] Direction getDirection() const noexcept;
 };
 
 #endif

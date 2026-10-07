@@ -8,11 +8,7 @@
 // Physics
 // ========================================================
 
-void Player::applyGravity(float dt) {
-    m_yVelocity += kGRAVITY * dt;
-}
-
-bool Player::collidesAt(float x, float y, const World& world) const {
+bool Player::collidesAt(float x, float y, const World& world) const noexcept {
     // the right/bottom edges are exclusive, so step just inside them
     constexpr float kEdge = 0.01f;
 
@@ -36,7 +32,7 @@ bool Player::collidesAt(float x, float y, const World& world) const {
     return false;
 }
 
-void Player::moveX(float amount, const World& world) {
+void Player::moveX(float amount, const World& world) noexcept {
     m_xRemainder += amount;
     int move = static_cast<int>(std::round(m_xRemainder));
     if (move == 0) { return; }
@@ -57,7 +53,7 @@ void Player::moveX(float amount, const World& world) {
     }
 }
 
-void Player::moveY(float amount, const World& world) {
+void Player::moveY(float amount, const World& world) noexcept {
     m_yRemainder += amount;
     int move = static_cast<int>(std::round(m_yRemainder));
     if (move == 0) return;
@@ -79,16 +75,20 @@ void Player::moveY(float amount, const World& world) {
     }
 }
 
+void Player::applyGravity(float dt) noexcept{
+    m_yVelocity += kGRAVITY * dt;
+}
+
 // ========================================================
 // Interface
 // ========================================================
 
-Player::Player() 
+Player::Player()noexcept 
 :   m_xPos{static_cast<float>(World::kCOLS * World::kTILE_SIZE) * 0.5f},
     m_yPos{World::kSCROLL_LINE + (World::kTILE_SIZE - Player::kY_SIZE)}
 {}
 
-void Player::update(float dt, const World& world) {        
+void Player::update(float dt, const World& world) noexcept {        
     m_health -= kHEALTH_DECAY_PER_SECOND * dt;
     applyGravity(dt);
 
@@ -98,33 +98,32 @@ void Player::update(float dt, const World& world) {
 
 bool Player::hasIntersection(
     float x1, float y1, float w1, float h1,
-    float x2, float y2, float w2, float h2)
+    float x2, float y2, float w2, float h2) noexcept
 {
     return x1 < x2 + w2 && x1 + w1 > x2 &&
             y1 < y2 + h2 && y1 + h1 > y2;
 }
 
 
-    void  Player::setVelocityX(float vel)  { m_xVelocity = vel; }
-    void  Player::setVelocityY(float vel)  { m_yVelocity = vel; }
-    void  Player::setFacing(Direction dir) { m_direction = dir; }
-    void  Player::startDig()               { m_digging = true; }
-    void  Player::stopDig()                { m_digging = false; }
-    void  Player::shiftY(float dy)         { m_yPos += dy; }
-    void  Player::setAlive(bool alive)     { m_alive = alive; }
-    void  Player::collectHealth(int numPickups) { 
+    void  Player::setVelocityX(float vel)       noexcept { m_xVelocity = vel; }
+    void  Player::setVelocityY(float vel)       noexcept { m_yVelocity = vel; }
+    void  Player::setFacing(Direction dir)      noexcept { m_direction = dir; }
+    void  Player::startDig()                    noexcept { m_digging = true; }
+    void  Player::stopDig()                     noexcept { m_digging = false; }
+    void  Player::shiftY(float dy)              noexcept { m_yPos += dy; }
+    void  Player::setAlive(bool alive)          noexcept { m_alive = alive; }
+    void  Player::collectHealth(int numPickups) noexcept { 
         m_health = std::min(
             m_health + kPICKUP_HEALTH_AMT * static_cast<float>(numPickups), 
             kMAX_HEALTH
         );
     }
 
-    float Player::getPosX()             const { return m_xPos; }
-    float Player::getPosY()             const { return m_yPos; }
-    float Player::getHealth()           const { return m_health; }
-    bool  Player::isOnGround()          const { return m_onGround; }
-    bool  Player::isDigging()           const { return m_digging; }
-    bool  Player::isAlive()             const { return m_alive; } 
+    float Player::getPosX()             const noexcept { return m_xPos; }
+    float Player::getPosY()             const noexcept { return m_yPos; }
+    float Player::getHealth()           const noexcept { return m_health; }
+    bool  Player::isOnGround()          const noexcept { return m_onGround; }
+    bool  Player::isDigging()           const noexcept { return m_digging; }
+    bool  Player::isAlive()             const noexcept { return m_alive; } 
 
-
-    Player::Direction Player::getDirection()    const { return m_direction; }
+    Player::Direction Player::getDirection()    const noexcept { return m_direction; }

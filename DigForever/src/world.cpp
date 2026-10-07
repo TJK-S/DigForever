@@ -102,6 +102,10 @@ int World::countMatchingGroup(int col, int row) const noexcept {
 
 void World::destroyGroup(int col, int row) noexcept {
     const TileGroup group = findGroup(col, row);
+    if (getTile(group.tiles[0].x, group.tiles[0].y).type == TileType::TILE_HEALTH) {
+        return;
+    }
+
     for (int i = 0; i < group.count; ++i) {
         const GridPos& tile = group.tiles[i];
         m_grid[tile.y][tile.x] = Tile{}; 
