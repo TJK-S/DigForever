@@ -77,7 +77,7 @@ void Player::moveY(float amount, const World& world) noexcept {
 }
 
 void Player::applyGravity(float dt) noexcept{
-    m_yVelocity += kGRAVITY * dt;
+    m_yVelocity = std::min(m_yVelocity + kGRAVITY * dt, kMAX_Y_VEL);
 }
 
 // ========================================================

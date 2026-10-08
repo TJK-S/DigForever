@@ -5,7 +5,11 @@
 
 Input::Input(Player& player) noexcept : m_player(player) {}
 
-void Input::handleInput() noexcept {
+void Input::handleInput(float dt) noexcept {
+    if (m_digCooldown > 0.f) {
+        m_digCooldown -= dt;
+    }
+
     const bool up    = ::IsKeyDown(KEY_W);
     const bool left  = ::IsKeyDown(KEY_A);
     const bool down  = ::IsKeyDown(KEY_S);
@@ -38,9 +42,8 @@ void Input::handleInput() noexcept {
 
     m_player.setFacing(facing);
     m_player.stopDig();
-    if (dig && !m_prevDig) {
+    if (dig && m_digCooldown <= 0.f) {
         m_player.startDig();
+        m_digCooldown = kDIG_COOLDOWN;
     }
-
-    m_prevDig = dig;
 }

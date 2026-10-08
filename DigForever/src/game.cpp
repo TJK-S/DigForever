@@ -12,7 +12,7 @@ void Game::update(float dt) {
     }
 
     if (m_player.isAlive()) {
-        m_input.handleInput();
+        m_input.handleInput(dt);
     } 
     else {
         m_deathTimer += dt;

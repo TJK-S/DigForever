@@ -15,6 +15,7 @@ public:
     static constexpr float kX_SPEED { 200.f };
     static constexpr float kY_SPEED { 350.f };
     static constexpr float kGRAVITY { 1500.f };
+    static constexpr float kMAX_Y_VEL { 1000.f };
 
     enum class Direction { Up, Down, Left, Right };
     

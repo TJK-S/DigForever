@@ -8,11 +8,12 @@
 class Input {
 private:
     Player& m_player;
-    bool m_prevDig { false };
-
+    float m_digCooldown { 0.f };
+    static constexpr float kDIG_COOLDOWN { 0.2f };
+    
 public:
     Input(Player& player) noexcept;
-    void handleInput() noexcept;
+    void handleInput(float dt) noexcept;
 };
 
 #endif
