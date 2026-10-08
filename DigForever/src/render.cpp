@@ -11,9 +11,11 @@ Renderer::Renderer(const Game& game) : m_game(game) {
     };
 
     load(TileType::TILE_RED,    "Red");
+    load(TileType::TILE_ORANGE, "Orange");
+    load(TileType::TILE_YELLOW, "Yellow");
     load(TileType::TILE_GREEN,  "Green");
     load(TileType::TILE_BLUE,   "Blue");
-    load(TileType::TILE_YELLOW, "Yellow");
+    load(TileType::TILE_PURPLE, "Purple");
     load(TileType::TILE_TOUGH,  "Tough");
     load(TileType::TILE_HEALTH, "Health");
 }
@@ -41,7 +43,7 @@ void Renderer::renderWorld() noexcept {
 
             const Tile& tile = world.getTile(col, row);
 
-            constexpr ::Color kBackgroundColor { ::WHITE };
+            constexpr ::Color kBackgroundColor { ::GRAY };
             ::DrawRectangle(
                 kX_WORLD_OFFSET + xPos, kY_WORLD_OFFSET + static_cast<int>(world.getOffsetY()) + yPos,
                 World::kTILE_SIZE, World::kTILE_SIZE, kBackgroundColor);

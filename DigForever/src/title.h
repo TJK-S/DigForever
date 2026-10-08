@@ -18,8 +18,7 @@ private:
     std::array<std::array<TileType, kBG_COLS>, kBG_ROWS> m_background {};
 
     std::mt19937 m_rng { std::random_device{}() };
-    std::uniform_int_distribution<int> m_tileDistr {
-        1, static_cast<int>(TileType::NUM_TILES) - 1 }; // not including 0 which is the empty tile
+    std::discrete_distribution<int> m_tileDistr { World::kTILE_WEIGHTS.begin(), World::kTILE_WEIGHTS.end() };
 
     float m_scrollOffset   { 0.f };
     bool  m_startRequested { false };

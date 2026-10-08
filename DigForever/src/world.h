@@ -7,16 +7,21 @@
 #include <array>
 #include <vector>
 
+// keep this order because of the kTILE_WEIGHTS
+// might make an x table so dont have to make changes in multiple areas
 enum class TileType {
     TILE_EMPTY,
     TILE_RED,
+    TILE_ORANGE,
+    TILE_YELLOW,
     TILE_GREEN,
     TILE_BLUE,
-    TILE_YELLOW,
+    TILE_PURPLE,
 
     // keep ordering of these last three
     TILE_TOUGH,  
     TILE_HEALTH,
+    
     NUM_TILES
 };
 
@@ -51,6 +56,18 @@ public:
     static constexpr int    kCENTER_ROW   { 9 };
     static constexpr float  kSCROLL_LINE  { kCENTER_ROW * kTILE_SIZE };
 
+    static constexpr std::array<int, static_cast<int>(TileType::NUM_TILES)> kTILE_WEIGHTS {
+        0,  // TILE_EMPTY  (never generated)
+        10, // TILE_RED
+        10, // TILE_ORANGE
+        10, // TILE_YELLOW
+        10, // TILE_GREEN
+        10, // TILE_BLUE
+        10, // TILE_PURPLE
+        6,  // TILE_TOUGH
+        1,  // TILE_HEALTH
+    };
+
 private:
     static constexpr int    kMIN_GROUP_TO_CLEAR { 4 }; // landing tiles kill groups of this size or larger
     static constexpr int    kNUM_HITS_TOUGH  { 5 };
@@ -59,6 +76,10 @@ private:
 
     static constexpr int    kROWS_PER_SECTION   { 100 };
     static constexpr int    kROWS_BELOW_PLAYER { kROWS - 1 - kCENTER_ROW };
+
+    static constexpr int    kNUM_COLORS         { static_cast<int>(TileType::TILE_TOUGH) - 1 }; // in enum class its everything before tough
+    static constexpr int    kCOLORS_PER_SECTION { 3 };
+    static constexpr int    kTILES_PER_SECTION  { kCOLORS_PER_SECTION + 2 }; // + tough + health
 
 private:
     struct TileGroup {
@@ -71,8 +92,8 @@ private:
     inline static float s_yOffset { 0.f };
 
     std::mt19937 m_rng { std::random_device{}() };
-    std::uniform_int_distribution<int> m_tileDistr { 
-        1, static_cast<int>(TileType::NUM_TILES) - 1}; // not including 0 which is the empty tile
+    std::discrete_distribution<int> m_tileDistr;
+    std::array<TileType, kTILES_PER_SECTION> m_sectionTiles {};
 
     int m_scoreThisFrame   { 0 };
     int m_depth            { 0 }; // will say meters but can really be anything I want
@@ -82,6 +103,7 @@ private:
     // grid generation logic ------------------------------
 
     [[nodiscard]] Tile makeRandomTile() noexcept;
+    void pickSectionTiles();
     void generateInitialGrid() noexcept;
     void clearGrid() noexcept;
 

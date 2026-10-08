@@ -47,7 +47,7 @@ int main() {
             // Draw
 
             ::BeginTextureMode(target);
-            ::ClearBackground(::GRAY);
+            ::ClearBackground(::BLACK);
             switch (screen) {
                 case GameState::Title:
                     renderer.renderTitle(title);

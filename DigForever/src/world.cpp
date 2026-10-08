@@ -9,15 +9,39 @@
 // ========================================================
 
 Tile World::makeRandomTile() noexcept {
-    const int randDistrNum = m_tileDistr(m_rng);
-    const TileType type = static_cast<TileType>(randDistrNum);
-    const int numHits = 
-        (randDistrNum < static_cast<int>(TileType::TILE_TOUGH)) 
-        ? kNUM_HITS_NORMAL : 
-        (randDistrNum < static_cast<int>(TileType::TILE_HEALTH))
-        ? kNUM_HITS_TOUGH : kNUM_HITS_HEALTH;
-        
-    return Tile{ type, numHits };   
+    const TileType type = m_sectionTiles[m_tileDistr(m_rng)];
+    const int numHits =
+        (type == TileType::TILE_TOUGH)  ? kNUM_HITS_TOUGH  :
+        (type == TileType::TILE_HEALTH) ? kNUM_HITS_HEALTH : kNUM_HITS_NORMAL;
+
+    return Tile{ type, numHits };
+}
+
+void World::pickSectionTiles() {
+    std::array<TileType, kNUM_COLORS> colors;
+    for (int i = 0; i < kNUM_COLORS; ++i) {
+        colors[i] = static_cast<TileType>(static_cast<int>(TileType::TILE_RED) + i);
+    }
+
+    // reroll until the color set differs from the previous section
+    const std::array<TileType, kTILES_PER_SECTION> previous = m_sectionTiles;
+    do {
+        std::shuffle(colors.begin(), colors.end(), m_rng);
+        std::sort(colors.begin(), colors.begin() + kCOLORS_PER_SECTION);
+    } while (std::equal(colors.begin(), colors.begin() + kCOLORS_PER_SECTION, previous.begin()));
+
+    std::array<int, kTILES_PER_SECTION> weights;
+    for (int i = 0; i < kCOLORS_PER_SECTION; ++i) {
+        m_sectionTiles[i] = colors[i];
+    }
+    m_sectionTiles[kCOLORS_PER_SECTION]     = TileType::TILE_TOUGH;
+    m_sectionTiles[kCOLORS_PER_SECTION + 1] = TileType::TILE_HEALTH;
+
+    for (int i = 0; i < kTILES_PER_SECTION; ++i) {
+        weights[i] = kTILE_WEIGHTS[static_cast<int>(m_sectionTiles[i])];
+    }
+
+    m_tileDistr = std::discrete_distribution<int>(weights.begin(), weights.end());
 }
 
 void World::generateInitialGrid() noexcept {
@@ -380,7 +404,8 @@ void World::buildOneRow() {
                         [](const FallingTile& f) { return f.targetRow < 0; }),
         m_fallingTiles.end());
 
-    const int sectionDepth = (m_depth / kROWS_PER_SECTION + 1) * kROWS_PER_SECTION;
+    const int prevSection  = m_depth / kROWS_PER_SECTION;
+    const int sectionDepth = (prevSection + 1) * kROWS_PER_SECTION;
     if (m_bottomRowDepth - m_depth >= kROWS_BELOW_PLAYER) {
         ++m_depth;
     }
@@ -390,6 +415,10 @@ void World::buildOneRow() {
         if (floorRow <= kCENTER_ROW) {
             clearGrid();
         }
+    }
+
+    if (m_depth / kROWS_PER_SECTION != prevSection) {
+        pickSectionTiles();
     }
 
     ++m_bottomRowDepth;
@@ -464,5 +493,6 @@ int World::getDepth() const noexcept {
 // class
 
 World::World() {
+    pickSectionTiles();
     generateInitialGrid();
 }
