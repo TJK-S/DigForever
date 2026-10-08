@@ -34,9 +34,12 @@ void Game::update(float dt) {
         return;
     }
 
-    const int healthCollected = m_world.collectHealthTiles(
-        m_player.getPosX(), m_player.getPosY(), Player::kX_SIZE, Player::kY_SIZE
-    );
+    const int healthCollected =
+        m_world.collectHealthTiles(
+            m_player.getPosX(), m_player.getPosY(), Player::kX_SIZE, Player::kY_SIZE) +
+        m_world.collectFallingHealthTiles(
+            m_player.getPosX(), m_player.getPosY(), Player::kX_SIZE, Player::kY_SIZE);
+    
     if (healthCollected > 0) {
         m_player.collectHealth(healthCollected);
     }

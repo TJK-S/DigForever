@@ -454,6 +454,31 @@ int World::collectHealthTiles(float x, float y, float w, float h) noexcept {
     return collected;
 }
 
+int World::collectFallingHealthTiles(float x, float y, float w, float h) noexcept {
+    constexpr float kSize = static_cast<float>(kTILE_SIZE);
+
+    int collected = 0;
+    for (std::size_t i = 0; i < m_fallingTiles.size();) {
+        const FallingTile& fallingTile = m_fallingTiles[i];
+        const float tileX = gridToWorldPosX(fallingTile.col);
+        const float tileY = fallingTileWorldPosY(fallingTile);
+
+        const bool touching = x < tileX + kSize && x + w > tileX &&
+                              y < tileY + kSize && y + h > tileY;
+
+        if (fallingTile.tile.type == TileType::TILE_HEALTH && touching) {
+            m_fallingTiles[i] = m_fallingTiles.back();
+            m_fallingTiles.pop_back();
+            ++collected;
+        }
+        else {
+            ++i;
+        }
+    }
+
+    return collected;
+}
+
 // ========================================================
 // getters / setters
 // ========================================================

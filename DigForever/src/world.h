@@ -152,6 +152,7 @@ public:
     void buildOneRow();
 
     [[nodiscard]] int collectHealthTiles(float x, float y, float w, float h) noexcept;
+    [[nodiscard]] int collectFallingHealthTiles(float x, float y, float w, float h) noexcept;
 
     // getters / setters ----------------------------------
 
