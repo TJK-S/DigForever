@@ -58,13 +58,13 @@ public:
 
     static constexpr std::array<int, static_cast<int>(TileType::NUM_TILES)> kTILE_WEIGHTS {
         0,  // TILE_EMPTY  (never generated)
-        10, // TILE_RED
-        10, // TILE_ORANGE
-        10, // TILE_YELLOW
-        10, // TILE_GREEN
-        10, // TILE_BLUE
-        10, // TILE_PURPLE
-        6,  // TILE_TOUGH
+        15, // TILE_RED
+        15, // TILE_ORANGE
+        15, // TILE_YELLOW
+        15, // TILE_GREEN
+        15, // TILE_BLUE
+        15, // TILE_PURPLE
+        8,  // TILE_TOUGH
         1,  // TILE_HEALTH
     };
 
