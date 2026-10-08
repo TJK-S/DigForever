@@ -2,6 +2,7 @@
 
 #include "player.h"
 
+#include <algorithm>
 #include <cmath>
 
 // ========================================================
@@ -89,7 +90,7 @@ Player::Player()noexcept
 {}
 
 void Player::update(float dt, const World& world) noexcept {        
-    m_health -= kHEALTH_DECAY_PER_SECOND * dt;
+    m_health = std::max(m_health - kHEALTH_DECAY_PER_SECOND * dt, 0.f);
     applyGravity(dt);
 
     moveX(m_xVelocity * dt, world);

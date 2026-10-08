@@ -283,9 +283,6 @@ void World::startFallingTiles() {
     }
 }
 
-
-
-
 // ========================================================
 // Score calculation
 // ========================================================
@@ -493,6 +490,7 @@ int World::getDepth() const noexcept {
 // class
 
 World::World() {
+    s_yOffset = 0.f;
     pickSectionTiles();
     generateInitialGrid();
 }

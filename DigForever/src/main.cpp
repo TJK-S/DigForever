@@ -41,6 +41,11 @@ int main() {
                     break;
                 case GameState::Playing:
                     game.update(::GetFrameTime());
+                    if (game.gameOverFinished()) {
+                        game.reset();
+                        title = TitleScreen{}; // clears startRequested so we don't jump straight back in
+                        screen = GameState::Title;
+                    }
                     break;
             }
             

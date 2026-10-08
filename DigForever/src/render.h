@@ -25,6 +25,7 @@ private:
 
 private:
     [[nodiscard]] const ::Texture2D& getTexture2DFromTile(TileType tile) const noexcept;
+    void renderGameOver() noexcept;
 
 public:
     Renderer(const Game& game);

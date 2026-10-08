@@ -5,6 +5,12 @@
 Game::Game() noexcept : m_input{ m_player } {}
 
 void Game::update(float dt) {
+    // freeze everything while "GAME OVER" is shown
+    if (m_gameOver) {
+        m_gameOverTimer += dt;
+        return;
+    }
+
     if (m_player.isAlive()) {
         m_input.handleInput();
     } 
@@ -23,6 +29,11 @@ void Game::update(float dt) {
     }
 
     m_player.update(dt, m_world);
+    if (m_player.getHealth() <= 0.f) {
+        m_gameOver = true;
+        return;
+    }
+
     const int healthCollected = m_world.collectHealthTiles(
         m_player.getPosX(), m_player.getPosY(), Player::kX_SIZE, Player::kY_SIZE
     );
@@ -78,4 +89,14 @@ void Game::update(float dt) {
     }
 
     m_world.hitTile(toRemoveX, toRemoveY);
+}
+
+void Game::reset() {
+    m_player = Player{};
+    m_world  = World{};
+
+    m_deathTimer    = 0.f;
+    m_gameOver      = false;
+    m_gameOverTimer = 0.f;
+    m_score         = 0;
 }

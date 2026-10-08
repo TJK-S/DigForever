@@ -114,8 +114,29 @@ void Renderer::renderUI() noexcept {
         ::TextFormat("Health: %.0f", m_game.getPlayer().getHealth()),
         kWORLD_BORDER_RIGHT + kPaddingX, kPaddingY + kSpacingY * 2, kFontSize, kTextColor
     );
-    
+
+    if (m_game.isGameOver()) {
+        renderGameOver();
+    }
 }
+
+void Renderer::renderGameOver() noexcept {
+    constexpr const char* kText          { "GAME OVER" };
+    constexpr int         kFontSize      { 48 };
+    constexpr int         kRectPadding   { 16 };
+
+    const int textW = ::MeasureText(kText, kFontSize);
+    const int textX = (kVIRTUAL_SCREEN_WIDTH - textW) / 2;
+    const int textY = (kVIRTUAL_SCREEN_HEIGHT - kFontSize) / 2;
+
+    ::DrawRectangle(
+        0, textY - kRectPadding,
+        kVIRTUAL_SCREEN_WIDTH, kFontSize + kRectPadding * 2,
+        ::Fade(::BLACK, 0.6f));
+
+    ::DrawText(kText, textX, textY, kFontSize, ::RED);
+}
+
 void Renderer::renderTitle(const TitleScreen& title) noexcept {
     // draw randomized tiles
     constexpr ::Color kBackgroundTint { 90, 90, 90, 255 };
